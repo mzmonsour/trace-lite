@@ -7,6 +7,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
 
 set(sources
     src/main.cpp
+    src/obj_file.cpp
+    src/model.cpp
     )
 
 include_directories(src/)
