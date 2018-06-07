@@ -11,5 +11,10 @@ set(sources
     src/model.cpp
     )
 
+find_package(Boost COMPONENTS program_options REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
+set(libs ${libs} ${Boost_LIBRARIES})
+
 include_directories(src/)
 add_executable(simple-trace ${sources})
+target_link_libraries(simple-trace ${libs})

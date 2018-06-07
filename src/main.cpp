@@ -1,20 +1,57 @@
 #include <iostream>
 #include <glm/vec3.hpp>
+#include <boost/program_options.hpp>
 #include "obj_file.h"
 #include "model.h"
 
 int main(int argc, char **argv)
 {
-    if (argc < 2) {
-        return 1;
+    namespace po = boost::program_options;
+
+    std::string outfile;
+    int img_width, img_height;
+
+    po::options_description opts("Hello");
+    po::positional_options_description posopts;
+    posopts.add("input", 1);
+    opts.add_options()
+        ("help", "Display help")
+        ("input", "Input file location")
+        ("output,o", po::value<std::string>(&outfile)->default_value("render.png"), "Output file location (defaults to render.png)")
+        ("width,w", po::value<int>(&img_width)->default_value(1920), "Width of the output image")
+        ("height,h", po::value<int>(&img_height)->default_value(1080), "Height of the output image");
+    po::variables_map argmap;
+    po::store(po::command_line_parser(argc, argv).options(opts).positional(posopts).run(), argmap);
+    po::notify(argmap);
+
+    int result = 0;
+    bool show_help = false;
+
+    if (argmap.count("help")) {
+        show_help = true;
+        result = 0;
     }
-    std::cout << "Loading OBJ file \"" << argv[1] << "\"" << std::endl;
-    ObjFile obj = ObjFile(std::string(argv[1]));
+
+    if (!argmap.count("input") && !show_help) {
+        std::cerr << "Must provide input file" << std::endl;
+        show_help = true;
+        result = 1;
+    }
+
+    if (show_help) {
+        std::cout << "Usage: " << argv[0] << " [options] input.obj" << std::endl;
+        std::cout << opts;
+        return result;
+    }
+
+    std::string infile = argmap["input"].as<std::string>();
+    std::cout << "Loading OBJ file \"" << infile << "\"" << std::endl;
+    ObjFile obj = ObjFile(infile);
     std::cout << obj.get_models().size() << " model(s) found:" << std::endl;
     for (auto& mdl : obj.get_models()) {
         std::cout << "Model \"" << mdl.get_name() << "\" ("
             << mdl.get_vertices().size() << " vertices)" << std::endl;
     }
-    return 0;
+    return result;
 }
 
