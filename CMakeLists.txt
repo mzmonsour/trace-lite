@@ -9,11 +9,16 @@ set(sources
     src/main.cpp
     src/obj_file.cpp
     src/model.cpp
+    src/png_helper.c
     )
 
 find_package(Boost COMPONENTS program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 set(libs ${libs} ${Boost_LIBRARIES})
+
+find_package(PNG REQUIRED)
+include_directories(${PNG_INCLUDE_DIRS})
+set(libs ${libs} ${PNG_LIBRARIES})
 
 include_directories(src/)
 add_executable(simple-trace ${sources})
