@@ -3,6 +3,8 @@
 #include <boost/program_options.hpp>
 #include "obj_file.h"
 #include "model.h"
+#include "render.h"
+#include "png_helper.h"
 
 int main(int argc, char **argv)
 {
@@ -52,6 +54,16 @@ int main(int argc, char **argv)
         std::cout << "Model \"" << mdl.get_name() << "\" ("
             << mdl.get_vertices().size() << " vertices)" << std::endl;
     }
+
+    render_options ropts;
+    ropts.width = img_width;
+    ropts.height = img_height;
+    Camera cam(glm::mat4(), 3.141592 / 2.0, 16.0/9.0);
+    Scene scene(obj.get_models());
+    std::vector<rgb_color> imgdata = scene.render(cam, ropts);
+
+    pnghelper_write_image_file(outfile.c_str(), &imgdata[0], img_width, img_height);
+
     return result;
 }
 

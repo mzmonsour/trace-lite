@@ -9,6 +9,8 @@ set(sources
     src/main.cpp
     src/obj_file.cpp
     src/model.cpp
+    src/render.cpp
+    src/trace.cpp
     src/png_helper.c
     )
 
