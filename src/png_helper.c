@@ -51,6 +51,8 @@ int pnghelper_write_image_file(const char *file, const void *bytes, size_t width
             PNG_COMPRESSION_TYPE_DEFAULT,
             PNG_FILTER_TYPE_DEFAULT);
 
+    png_set_sRGB(png, pnginfo, PNG_sRGB_INTENT_ABSOLUTE);
+
     png_write_info(png, pnginfo);
     png_write_image(png, rows);
     png_write_end(png, NULL);
