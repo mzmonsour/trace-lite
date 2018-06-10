@@ -26,3 +26,8 @@ class ObjFile {
         const std::vector<Model>& get_models() const { return m_objects; }
 
 };
+
+/**
+ * Dumps a Model to an object file, for debugging purposes.
+ */
+void dump_obj_file(std::string& path, const Model& m);

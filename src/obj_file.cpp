@@ -116,3 +116,25 @@ ObjFile::ObjFile(const std::string& path) :
     }
 }
 
+void dump_obj_file(std::string& path, const Model& m)
+{
+    std::ofstream file(path);
+    auto& indices = m.get_face_indices();
+    auto& vertices = m.get_vertices();
+    // Normals not needed for debugging currently
+    //auto& normals = m.get_normals();
+    if (file) {
+        file << "# BEGIN DUMP" << std::endl;
+        file << "o " << m.get_name() << std::endl;
+        for (auto& v : vertices) {
+            file << "v " << v.x << ' ' << v.y << ' ' << v.z << std::endl;
+        }
+        for (auto& idx : indices) {
+            file << "f "
+                << idx.vertices[0] << ' '
+                << idx.vertices[1] << ' '
+                << idx.vertices[2] << std::endl;
+        }
+        file << "# END DUMP" << std::endl;
+    }
+}

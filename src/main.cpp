@@ -14,7 +14,7 @@ int main(int argc, char **argv)
 {
     namespace po = boost::program_options;
 
-    std::string outfile;
+    std::string outfile, dumpfile;
     int img_width, img_height;
 
     po::options_description opts("Hello");
@@ -25,7 +25,8 @@ int main(int argc, char **argv)
         ("input", "Input file location")
         ("output,o", po::value<std::string>(&outfile)->default_value("render.png"), "Output file location (defaults to render.png)")
         ("width,w", po::value<int>(&img_width)->default_value(1920), "Width of the output image")
-        ("height,h", po::value<int>(&img_height)->default_value(1080), "Height of the output image");
+        ("height,h", po::value<int>(&img_height)->default_value(1080), "Height of the output image")
+        ("dump", po::value<std::string>(&dumpfile), "Dump first model in OBJ file to this location");
     po::variables_map argmap;
     po::store(po::command_line_parser(argc, argv).options(opts).positional(posopts).run(), argmap);
     po::notify(argmap);
@@ -57,6 +58,16 @@ int main(int argc, char **argv)
     for (auto& mdl : obj.get_models()) {
         std::cout << "Model \"" << mdl.get_name() << "\" ("
             << mdl.get_vertices().size() << " vertices)" << std::endl;
+    }
+
+    if (argmap.count("dump")) {
+        if (obj.get_models().size() == 0) {
+            std::cout << "No models to dump..." << std::endl;
+        } else {
+            std::cout << "Dumping model to file..." << std::endl;
+            dump_obj_file(dumpfile, obj.get_models()[0]);
+        }
+        return 0;
     }
 
     render_options ropts;

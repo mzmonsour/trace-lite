@@ -116,6 +116,11 @@ class Model {
         const std::vector<glm::vec4>& get_normals() const { return m_normals; }
 
         /**
+         * Get the model's face indices.
+         */
+        const std::vector<FaceIndex>& get_face_indices() const { return m_triangles; }
+
+        /**
          * Beginning iterator over all triangles in the model.
          */
         triangle_iter begin() const;
