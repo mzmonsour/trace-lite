@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glm/fwd.hpp>
+#include <glm/vec4.hpp>
 #include <vector>
 #include <string>
 
@@ -14,8 +14,8 @@ class Model {
 
         const std::string m_name;
 
-        std::vector<glm::vec3>  m_vertices;
-        std::vector<glm::vec3>  m_normals;
+        std::vector<glm::vec4>  m_vertices;
+        std::vector<glm::vec4>  m_normals;
         std::vector<FaceIndex>  m_triangles;
 
     public:
@@ -24,8 +24,8 @@ class Model {
          * Create a model from a list of vertices, normals, and triangles.
          */
         Model(  const std::string name,
-                std::vector<glm::vec3> vertices,
-                std::vector<glm::vec3> normals,
+                std::vector<glm::vec4> vertices,
+                std::vector<glm::vec4> normals,
                 std::vector<FaceIndex> triangles);
 
         Model() {}
@@ -40,5 +40,5 @@ class Model {
         /**
          * Get the model's vertices.
          */
-        const std::vector<glm::vec3>& get_vertices() const { return m_vertices; }
+        const std::vector<glm::vec4>& get_vertices() const { return m_vertices; }
 };

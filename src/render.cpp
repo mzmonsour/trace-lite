@@ -26,8 +26,8 @@ ray Camera::compute_ray(glm::vec2 pos) const
     float tan = glm::tan(m_fov * 0.5);
     x = tan * m_aspect * pos.x;
     y = tan * pos.y;
-    out.dir = glm::normalize(glm::vec3(m_xform * glm::vec4(x, y, -1, 1.0)));
-    out.origin = glm::vec3(m_xform * glm::vec4(0.0, 0.0, 0.0, 1.0)); // TODO Cache origin?
+    out.dir = glm::normalize(m_xform * glm::vec4(x, y, -1.0, 0.0));
+    out.origin = m_xform * glm::vec4(0.0, 0.0, 0.0, 1.0); // TODO Cache origin?
     return out;
 }
 

@@ -2,17 +2,17 @@
 
 #include "model.h"
 
-#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 
 struct ray {
-    glm::vec3 origin;
-    glm::vec3 dir;
+    glm::vec4 origin;
+    glm::vec4 dir;
 };
 
 struct trace_info
 {
-    glm::vec3   hitpos;
-    glm::vec3   hitnorm;
+    glm::vec4   hitpos;
+    glm::vec4   hitnorm;
     Model*      hitobj;
 };
 
