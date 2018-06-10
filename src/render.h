@@ -46,7 +46,7 @@ class Camera {
         /**
          * Set the camera transform.
          */
-        void set_transform(glm::mat4x4 xform) { m_xform = xform; }
+        void set_transform(glm::mat4x4 xform) { m_xform = glm::inverse(xform); }
 
         /**
          * Compute a ray directed at a virtual screen.

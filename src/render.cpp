@@ -2,6 +2,7 @@
 #include <glm/common.hpp>
 #include <glm/trigonometric.hpp>
 #include <glm/geometric.hpp>
+#include <iostream>
 
 glm::vec3 linear_to_srgb(glm::vec3 color) {
     // TODO More accurate sRGB correction
@@ -13,7 +14,7 @@ glm::vec3 linear_to_srgb(glm::vec3 color) {
 }
 
 Camera::Camera(glm::mat4x4 xform, float fov, float aspect) :
-    m_xform(xform),
+    m_xform(glm::inverse(xform)),
     m_fov(fov),
     m_aspect(aspect)
 {
@@ -40,8 +41,12 @@ std::vector<rgb_color> Scene::render(Camera& cam, render_options opts) const
 {
     std::vector<rgb_color> img;
     img.reserve(opts.width * opts.height);
+    size_t progress = 0, percent = 0;
+    size_t hits = 0;
+    std::cout << "Rendering" << std::flush;
     for (int y = 0; y < opts.height; ++y) {
         for (int x = 0; x < opts.width; ++x) {
+            progress++;
             ray view_ray = cam.compute_ray(
                     glm::vec2(  2.0 * ((float)x) / ((float)opts.width) - 1.0,
                                 1.0 - 2.0 * ((float)y) / ((float)opts.height)));
@@ -50,6 +55,7 @@ std::vector<rgb_color> Scene::render(Camera& cam, render_options opts) const
             if (trace.hitobj != nullptr) {
                 // TODO Shading and materials
                 color = glm::vec3(0.7, 0.7, 0.7);
+                hits++;
             }
             color = linear_to_srgb(color);
             rgb_color imgcolor;
@@ -58,6 +64,12 @@ std::vector<rgb_color> Scene::render(Camera& cam, render_options opts) const
             imgcolor.b = color.b * 255;
             img.push_back(imgcolor);
         }
+        if ((progress * 100) / (opts.width * opts.height) > percent) {
+            percent++;
+            std::cout << "." << std::flush;
+        }
     }
+    std::cout << "done!" << std::endl;
+    std::cout << "Total ray hits: " << hits << std::endl;
     return img;
 }

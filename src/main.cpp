@@ -1,10 +1,14 @@
 #include <iostream>
 #include <glm/vec3.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <boost/program_options.hpp>
 #include "obj_file.h"
 #include "model.h"
 #include "render.h"
 #include "png_helper.h"
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
 
 int main(int argc, char **argv)
 {
@@ -58,9 +62,11 @@ int main(int argc, char **argv)
     render_options ropts;
     ropts.width = img_width;
     ropts.height = img_height;
-    Camera cam(glm::mat4(), 3.141592 / 2.0, 16.0/9.0);
+    Camera cam(glm::lookAt(glm::vec3(0.0, 10.0, 10.0), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0)),
+            3.141592 / 2.0, 16.0/9.0);
     Scene scene(obj.get_models());
     std::vector<rgb_color> imgdata = scene.render(cam, ropts);
+
 
     pnghelper_write_image_file(outfile.c_str(), &imgdata[0], img_width, img_height);
 
