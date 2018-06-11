@@ -56,6 +56,8 @@ std::vector<rgb_color> Scene::render(Camera& cam, render_options opts) const
                 // TODO Shading and materials
                 if (opts.debug_flags & debug_mode::normal_coloring) {
                     color = glm::vec3(trace.hitnorm);
+                } else if (opts.debug_flags & debug_mode::interp_coloring) {
+                    color = glm::vec3(trace.barycenter);
                 } else {
                     color = glm::vec3(0.7, 0.7, 0.7);
                 }

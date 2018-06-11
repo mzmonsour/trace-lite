@@ -30,6 +30,7 @@ int main(int argc, char **argv)
         ("height,h", po::value<int>(&img_height)->default_value(1080), "Height of the output image")
         ("dump", po::value<std::string>(&dumpfile), "Dump first model in OBJ file to this location")
         ("normal-coloring", "Enable normal coloring mode")
+        ("interp-coloring", "Enable interpolated coloring mode")
         ("eye", po::value<std::string>(&eyestr)->default_value("0,0,10"), "Eye position of camera")
         ;
     po::variables_map argmap;
@@ -92,6 +93,10 @@ int main(int argc, char **argv)
     if (argmap.count("normal-coloring")) {
         std::cout << "DEBUG: Normal coloring mode enabled" << std::endl;
         ropts.debug_flags |= debug_mode::normal_coloring;
+    }
+    if (argmap.count("interp-coloring")) {
+        std::cout << "DEBUG: Interpolated coloring mode enabled" << std::endl;
+        ropts.debug_flags |= debug_mode::interp_coloring;
     }
     std::vector<rgb_color> imgdata = scene.render(cam, ropts);
 
