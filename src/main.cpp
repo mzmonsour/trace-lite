@@ -26,7 +26,9 @@ int main(int argc, char **argv)
         ("output,o", po::value<std::string>(&outfile)->default_value("render.png"), "Output file location (defaults to render.png)")
         ("width,w", po::value<int>(&img_width)->default_value(1920), "Width of the output image")
         ("height,h", po::value<int>(&img_height)->default_value(1080), "Height of the output image")
-        ("dump", po::value<std::string>(&dumpfile), "Dump first model in OBJ file to this location");
+        ("dump", po::value<std::string>(&dumpfile), "Dump first model in OBJ file to this location")
+        ("normal-coloring", "Enable normal coloring mode")
+        ;
     po::variables_map argmap;
     po::store(po::command_line_parser(argc, argv).options(opts).positional(posopts).run(), argmap);
     po::notify(argmap);
@@ -76,6 +78,11 @@ int main(int argc, char **argv)
     Camera cam(glm::lookAt(glm::vec3(0.0, 10.0, 10.0), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0)),
             3.141592 / 2.0, 16.0/9.0);
     Scene scene(obj.get_models());
+    ropts.debug_flags = debug_mode::none;
+    if (argmap.count("normal-coloring")) {
+        std::cout << "DEBUG: Normal coloring mode enabled" << std::endl;
+        ropts.debug_flags |= debug_mode::normal_coloring;
+    }
     std::vector<rgb_color> imgdata = scene.render(cam, ropts);
 
 

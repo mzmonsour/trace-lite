@@ -54,7 +54,11 @@ std::vector<rgb_color> Scene::render(Camera& cam, render_options opts) const
             glm::vec3 color(0.0, 0.0, 0.0);
             if (trace.hitobj != nullptr) {
                 // TODO Shading and materials
-                color = glm::vec3(0.7, 0.7, 0.7);
+                if (opts.debug_flags & debug_mode::normal_coloring) {
+                    color = glm::vec3(trace.hitnorm);
+                } else {
+                    color = glm::vec3(0.7, 0.7, 0.7);
+                }
                 hits++;
             }
             color = linear_to_srgb(color);

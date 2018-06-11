@@ -12,8 +12,16 @@
  */
 glm::vec3 linear_to_srgb(glm::vec3 color);
 
+/**
+ */
+namespace debug_mode {
+    const static int none               = 0; // No debug modes enabled
+    const static int normal_coloring    = 1 << 0; // Color surfaces by their normals
+};
+
 struct render_options {
     uint16_t width, height;
+    int debug_flags; // Select bitflags from debug_mode
 };
 
 struct rgb_color {
