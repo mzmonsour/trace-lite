@@ -16,6 +16,8 @@ int main(int argc, char **argv)
 
     std::string outfile, dumpfile;
     int img_width, img_height;
+    glm::vec3 eyepos;
+    std::string eyestr;
 
     po::options_description opts("Hello");
     po::positional_options_description posopts;
@@ -28,6 +30,7 @@ int main(int argc, char **argv)
         ("height,h", po::value<int>(&img_height)->default_value(1080), "Height of the output image")
         ("dump", po::value<std::string>(&dumpfile), "Dump first model in OBJ file to this location")
         ("normal-coloring", "Enable normal coloring mode")
+        ("eye", po::value<std::string>(&eyestr)->default_value("0,0,10"), "Eye position of camera")
         ;
     po::variables_map argmap;
     po::store(po::command_line_parser(argc, argv).options(opts).positional(posopts).run(), argmap);
@@ -72,10 +75,17 @@ int main(int argc, char **argv)
         return 0;
     }
 
+    std::string eyecomp;
+    std::istringstream eyeparse(eyestr);
+    for (int i = 0; i < 3; ++i) {
+        std::getline(eyeparse, eyecomp, ',');
+        eyepos[i] = std::stof(eyecomp);
+    }
+
     render_options ropts;
     ropts.width = img_width;
     ropts.height = img_height;
-    Camera cam(glm::lookAt(glm::vec3(0.0, 10.0, 10.0), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0)),
+    Camera cam(glm::lookAt(eyepos, glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0)),
             3.141592 / 2.0, 16.0/9.0);
     Scene scene(obj.get_models());
     ropts.debug_flags = debug_mode::none;
