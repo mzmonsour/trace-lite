@@ -27,17 +27,17 @@ ParseFaceResult parse_obj_face(std::istringstream& in, FaceIndex& out)
             // TODO: Handle inconsistent number of indices. e.g. If one vertex has normals, all 3 should.
             if (delimA == std::string::npos) {
                 // Vertex only
-                out.vertices[vertices] = std::stof(indexgroup);
+                out.vertices[vertices] = std::stoi(indexgroup);
                 // TODO: -1 is a poor sentinel value. Prevents negative indexing on normals.
                 out.normals[vertices] = -1;
             } else if (delimB == std::string::npos) {
                 // Vertex and texcoords
-                out.vertices[vertices] = std::stof(indexgroup.substr(0, delimA));
+                out.vertices[vertices] = std::stoi(indexgroup.substr(0, delimA));
                 out.normals[vertices] = -1;
             } else {
                 // Vertex, texcoords, and normals
-                out.vertices[vertices] = std::stof(indexgroup.substr(0, delimA));
-                out.normals[vertices] = std::stof(indexgroup.substr(delimB+1));
+                out.vertices[vertices] = std::stoi(indexgroup.substr(0, delimA));
+                out.normals[vertices] = std::stoi(indexgroup.substr(delimB+1));
             }
         } catch (std::invalid_argument& ex) {
             return ParseFaceResult::BadIndex;
@@ -96,8 +96,15 @@ ObjFile::ObjFile(const std::string& path) :
                         for (int i = 0; i < 3; ++i) {
                             if (fidx.vertices[i] < 0) {
                                 fidx.vertices[i] += vertices.size();
+                            } else {
+                                // Shift 1-indexing to 0-indexing
+                                fidx.vertices[i]--;
                             }
-                            // TODO: Negative indexing on normals. (see parser also)
+                            if (fidx.normals[i] < 0) {
+                                // TODO: Negative indexing on normals. (see parser also)
+                            } else {
+                                fidx.normals[i]--;
+                            }
                         }
                         triangles.push_back(fidx);
                     } break;
@@ -133,9 +140,9 @@ void dump_obj_file(std::string& path, const Model& m)
         }
         for (auto& idx : indices) {
             file << "f "
-                << idx.vertices[0] << "//" << idx.normals[0] << ' '
-                << idx.vertices[1] << "//" << idx.normals[1] << ' '
-                << idx.vertices[2] << "//" << idx.normals[2] << std::endl;
+                << idx.vertices[0]+1 << "//" << idx.normals[0]+1 << ' '
+                << idx.vertices[1]+1 << "//" << idx.normals[1]+1 << ' '
+                << idx.vertices[2]+1 << "//" << idx.normals[2]+1 << std::endl;
         }
         file << "# END DUMP" << std::endl;
     }
