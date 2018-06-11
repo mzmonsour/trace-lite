@@ -1,11 +1,13 @@
 #include "trace.h"
 #include <glm/mat2x2.hpp>
 #include <glm/geometric.hpp>
+#include <limits>
 
 trace_info trace_ray(const ray& r, const std::vector<Model>& objs)
 {
     trace_info info;
     info.hitobj = nullptr;
+    float best_d = std::numeric_limits<float>::infinity();
     for (auto& obj : objs) {
         for (auto& tri : obj) {
             float d;
@@ -18,8 +20,8 @@ trace_info trace_ray(const ray& r, const std::vector<Model>& objs)
             glm::vec3 norm = glm::cross(glm::vec3(p1-p0), glm::vec3(p2-p0));
             plane = glm::vec4(norm, -glm::dot(norm, glm::vec3(p0)));
             d = -glm::dot(plane, r.origin) / glm::dot(plane, r.dir);
-            if (d < 0) {
-                // Plane intersects behind ray
+            if (d < 0 || d > best_d) {
+                // Plane intersects behind ray, or lies behind our best trace
                 continue;
             }
             pout = r.origin + d * r.dir;
@@ -48,7 +50,7 @@ trace_info trace_ray(const ray& r, const std::vector<Model>& objs)
                 info.barycenter = glm::vec3(1.0f - w.x - w.y, w.x, w.y);
                 // TODO Return this, or computed normal?
                 info.hitnorm = tri.surface_normal(info.barycenter);
-                return info;
+                best_d = d;
             }
         }
     }
