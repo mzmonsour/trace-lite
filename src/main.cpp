@@ -34,6 +34,7 @@ int main(int argc, char **argv)
         ("interp-coloring", "Enable interpolated coloring mode")
         ("eye", po::value<std::string>(&eyestr)->default_value("0,0,10"), "Eye position of camera")
         ("fov,f", po::value<float>(&fov)->default_value(90.0f), "Vertical field of view in degrees")
+        ("msaa", "Enable Multisample Anti-Aliasing")
         ;
     po::variables_map argmap;
     po::store(po::command_line_parser(argc, argv).options(opts).positional(posopts).run(), argmap);
@@ -99,6 +100,9 @@ int main(int argc, char **argv)
     if (argmap.count("interp-coloring")) {
         std::cout << "DEBUG: Interpolated coloring mode enabled" << std::endl;
         ropts.debug_flags |= debug_mode::interp_coloring;
+    }
+    if (argmap.count("msaa")) {
+        ropts.msaa = true;
     }
     std::vector<rgb_color> imgdata = scene.render(cam, ropts);
 

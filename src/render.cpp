@@ -4,6 +4,14 @@
 #include <glm/geometric.hpp>
 #include <iostream>
 
+render_options::render_options() :
+    width(640),
+    height(480),
+    debug_flags(debug_mode::none),
+    msaa(false)
+{
+}
+
 glm::vec3 linear_to_srgb(glm::vec3 color) {
     // TODO More accurate sRGB correction
     glm::vec3 out;
@@ -47,22 +55,39 @@ std::vector<rgb_color> Scene::render(Camera& cam, render_options opts) const
     for (int y = 0; y < opts.height; ++y) {
         for (int x = 0; x < opts.width; ++x) {
             progress++;
-            ray view_ray = cam.compute_ray(
-                    glm::vec2(  2.0 * ((float)x) / ((float)opts.width) - 1.0,
-                                1.0 - 2.0 * ((float)y) / ((float)opts.height)));
-            trace_info trace = trace_ray(view_ray, m_objects);
-            glm::vec3 color(0.0, 0.0, 0.0);
-            if (trace.hitobj != nullptr) {
-                // TODO Shading and materials
-                if (opts.debug_flags & debug_mode::normal_coloring) {
-                    color = glm::vec3(trace.hitnorm);
-                } else if (opts.debug_flags & debug_mode::interp_coloring) {
-                    color = glm::vec3(trace.barycenter);
-                } else {
-                    color = glm::vec3(0.7, 0.7, 0.7);
-                }
-                hits++;
+            size_t samplecount, msfactor = 1;
+            if (opts.msaa) {
+                msfactor = 2;
             }
+            std::vector<glm::vec3> samples;
+            samplecount = msfactor * msfactor;
+            for (size_t s = 0; s < samplecount; ++s) {
+                float sx, sy;
+                sx = (float)(s % msfactor);
+                sy = (float)(s / msfactor);
+                ray view_ray = cam.compute_ray(
+                        glm::vec2(  2.0 * (((float)x*msfactor) + sx) / ((float)opts.width * msfactor) - 1.0,
+                                    1.0 - 2.0 * (((float)y*msfactor) + sy) / ((float)opts.height * msfactor)));
+                trace_info trace = trace_ray(view_ray, m_objects);
+                glm::vec3 sample(0.0, 0.0, 0.0);
+                if (trace.hitobj != nullptr) {
+                    // TODO Shading and materials
+                    if (opts.debug_flags & debug_mode::normal_coloring) {
+                        sample = glm::vec3(trace.hitnorm);
+                    } else if (opts.debug_flags & debug_mode::interp_coloring) {
+                        sample = glm::vec3(trace.barycenter);
+                    } else {
+                        sample = glm::vec3(0.7, 0.7, 0.7);
+                    }
+                    hits++;
+                }
+                samples.push_back(sample);
+            }
+            glm::vec3 color(0.0, 0.0, 0.0);
+            for (auto& s : samples) {
+                color += s;
+            }
+            color *= 1.0f/((float)samples.size());
             color = linear_to_srgb(color);
             rgb_color imgcolor;
             imgcolor.r = color.r * 255;

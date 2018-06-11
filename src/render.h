@@ -21,8 +21,15 @@ namespace debug_mode {
 };
 
 struct render_options {
+
+    /**
+     * Construct with default render options.
+     */
+    render_options();
+
     uint16_t width, height;
     int debug_flags; // Select bitflags from debug_mode
+    bool msaa; // Enable MSAA
 };
 
 struct rgb_color {
