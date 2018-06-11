@@ -121,19 +121,21 @@ void dump_obj_file(std::string& path, const Model& m)
     std::ofstream file(path);
     auto& indices = m.get_face_indices();
     auto& vertices = m.get_vertices();
-    // Normals not needed for debugging currently
-    //auto& normals = m.get_normals();
+    auto& normals = m.get_normals();
     if (file) {
         file << "# BEGIN DUMP" << std::endl;
         file << "o " << m.get_name() << std::endl;
         for (auto& v : vertices) {
             file << "v " << v.x << ' ' << v.y << ' ' << v.z << std::endl;
         }
+        for (auto& n : normals) {
+            file << "vn " << n.x << ' ' << n.y << ' ' << n.z << std::endl;
+        }
         for (auto& idx : indices) {
             file << "f "
-                << idx.vertices[0] << ' '
-                << idx.vertices[1] << ' '
-                << idx.vertices[2] << std::endl;
+                << idx.vertices[0] << "//" << idx.normals[0] << ' '
+                << idx.vertices[1] << "//" << idx.normals[1] << ' '
+                << idx.vertices[2] << "//" << idx.normals[2] << std::endl;
         }
         file << "# END DUMP" << std::endl;
     }
