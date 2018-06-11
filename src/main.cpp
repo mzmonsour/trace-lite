@@ -86,7 +86,7 @@ int main(int argc, char **argv)
     ropts.width = img_width;
     ropts.height = img_height;
     Camera cam(glm::lookAt(eyepos, glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0)),
-            3.141592 / 2.0, 16.0/9.0);
+            3.141592 / 2.0, ((float)img_width)/((float)img_height));
     Scene scene(obj.get_models());
     ropts.debug_flags = debug_mode::none;
     if (argmap.count("normal-coloring")) {
