@@ -20,7 +20,7 @@ trace_info trace_ray(const ray& r, const std::vector<Model>& objs)
             glm::vec3 norm = glm::cross(glm::vec3(p1-p0), glm::vec3(p2-p0));
             plane = glm::vec4(norm, -glm::dot(norm, glm::vec3(p0)));
             d = -glm::dot(plane, r.origin) / glm::dot(plane, r.dir);
-            if (d < 0 || d > best_d) {
+            if (d < 0 || d >= best_d) {
                 // Plane intersects behind ray, or lies behind our best trace
                 continue;
             }
