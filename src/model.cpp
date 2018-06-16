@@ -3,8 +3,8 @@
 #include <glm/vec3.hpp>
 
 Model::Model(  const std::string name,
-                std::vector<glm::vec4> vertices,
-                std::vector<glm::vec4> normals,
+                std::vector<vec4> vertices,
+                std::vector<vec4> normals,
                 std::vector<FaceIndex> triangles) :
     m_name(name),
     m_vertices(std::move(vertices)),
@@ -73,24 +73,24 @@ Model::triangle::triangle(const Model& m) :
 {
 }
 
-glm::vec4 Model::triangle::p0() const
+vec4 Model::triangle::p0() const
 {
     return m_container.get_vertices()[m_idx->vertices[0]];
 }
 
-glm::vec4 Model::triangle::p1() const
+vec4 Model::triangle::p1() const
 {
     return m_container.get_vertices()[m_idx->vertices[1]];
 }
 
-glm::vec4 Model::triangle::p2() const
+vec4 Model::triangle::p2() const
 {
     return m_container.get_vertices()[m_idx->vertices[2]];
 }
 
-glm::vec4 Model::triangle::surface_normal(glm::vec3 coords) const
+vec4 Model::triangle::surface_normal(vec3 coords) const
 {
-    glm::vec4 n0, n1, n2;
+    vec4 n0, n1, n2;
     auto& normals = m_container.get_normals();
     n0 = normals[m_idx->normals[0]];
     n1 = normals[m_idx->normals[1]];
@@ -98,8 +98,8 @@ glm::vec4 Model::triangle::surface_normal(glm::vec3 coords) const
     return coords.x * n0 + coords.y * n1 + coords.z * n2;
 }
 
-glm::vec2 Model::triangle::surface_uvs(glm::vec3 coords) const
+vec2 Model::triangle::surface_uvs(vec3 coords) const
 {
     // STUB
-    return glm::vec2(0.0, 0.0);
+    return vec2(0.0, 0.0);
 }

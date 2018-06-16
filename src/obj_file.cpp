@@ -58,7 +58,7 @@ ObjFile::ObjFile(const std::string& path) :
     std::string line;
     if (file) {
         std::string objname = "(anonymous)";
-        std::vector<glm::vec4> vertices, normals;
+        std::vector<vec4> vertices, normals;
         std::vector<FaceIndex> triangles;
         while (std::getline(file, line)) {
             if (line.size() == 0 || line.front() == '#') {
@@ -80,14 +80,14 @@ ObjFile::ObjFile(const std::string& path) :
                 }
                 lparse >> objname;
             } else if (keyword == "v") {
-                float x,y,z;
+                scalar x,y,z;
                 if (lparse >> x >> y >> z) {
-                    vertices.push_back(glm::vec4(x, y, z, 1.0));
+                    vertices.push_back(vec4(x, y, z, 1.0));
                 }
             } else if (keyword == "vn") {
-                float x,y,z;
+                scalar x,y,z;
                 if (lparse >> x >> y >> z) {
-                    normals.push_back(glm::vec4(x, y, z, 0.0));
+                    normals.push_back(vec4(x, y, z, 0.0));
                 }
             } else if (keyword == "f") {
                 FaceIndex fidx;

@@ -14,6 +14,10 @@ set(sources
     src/png_helper.c
     )
 
+if(USE_DOUBLE_PRECISION EQUAL 1)
+    add_definitions(-DUSE_DOUBLE_PRECISION)
+endif()
+
 find_package(Boost COMPONENTS program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 set(libs ${libs} ${Boost_LIBRARIES})

@@ -6,6 +6,7 @@
 #include "model.h"
 #include "render.h"
 #include "png_helper.h"
+#include "types.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
@@ -16,9 +17,9 @@ int main(int argc, char **argv)
 
     std::string outfile, dumpfile;
     int img_width, img_height;
-    glm::vec3 eyepos;
+    vec3 eyepos;
     std::string eyestr;
-    float fov;
+    scalar fov;
 
     po::options_description opts("Hello");
     po::positional_options_description posopts;
@@ -33,7 +34,7 @@ int main(int argc, char **argv)
         ("normal-coloring", "Enable normal coloring mode")
         ("interp-coloring", "Enable interpolated coloring mode")
         ("eye", po::value<std::string>(&eyestr)->default_value("0,0,10"), "Eye position of camera")
-        ("fov,f", po::value<float>(&fov)->default_value(90.0f), "Vertical field of view in degrees")
+        ("fov,f", po::value<scalar>(&fov)->default_value(90.0f), "Vertical field of view in degrees")
         ("msaa", "Enable Multisample Anti-Aliasing")
         ;
     po::variables_map argmap;
@@ -89,8 +90,8 @@ int main(int argc, char **argv)
     render_options ropts;
     ropts.width = img_width;
     ropts.height = img_height;
-    Camera cam(glm::lookAt(eyepos, glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0)),
-            glm::radians(fov), ((float)img_width)/((float)img_height));
+    Camera cam(glm::lookAt(eyepos, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0)),
+            glm::radians(fov), ((scalar)img_width)/((scalar)img_height));
     Scene scene(obj.get_models());
     ropts.debug_flags = debug_mode::none;
     if (argmap.count("normal-coloring")) {

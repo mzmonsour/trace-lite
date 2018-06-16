@@ -1,5 +1,7 @@
 #pragma once
 
+#include "types.h"
+
 #include <glm/vec4.hpp>
 #include <vector>
 #include <string>
@@ -14,8 +16,8 @@ class Model {
 
         const std::string m_name;
 
-        std::vector<glm::vec4>  m_vertices;
-        std::vector<glm::vec4>  m_normals;
+        std::vector<vec4>  m_vertices;
+        std::vector<vec4>  m_normals;
         std::vector<FaceIndex>  m_triangles;
 
     public:
@@ -38,31 +40,31 @@ class Model {
                 /**
                  * Get the first vertex of the triangle.
                  */
-                glm::vec4 p0() const;
+                vec4 p0() const;
 
                 /**
                  * Get the second vertex of the triangle.
                  */
-                glm::vec4 p1() const;
+                vec4 p1() const;
 
                 /**
                  * Get the third vertex of the triangle.
                  */
-                glm::vec4 p2() const;
+                vec4 p2() const;
                 
                 /**
                  * Compute the normal at a point on the surface of the triangle.
                  *
                  * @param coords Barycentric coordinates of the point on the surface.
                  */
-                glm::vec4 surface_normal(glm::vec3 coords) const;
+                vec4 surface_normal(vec3 coords) const;
 
                 /**
                  * Compute the UV coordinates at a point on the surface of the triangle.
                  *
                  * @param coords Barycentric coordinates of the point on the surface.
                  */
-                glm::vec2 surface_uvs(glm::vec3 coords) const;
+                vec2 surface_uvs(vec3 coords) const;
         };
 
         class triangle_iter {
@@ -92,8 +94,8 @@ class Model {
          * Create a model from a list of vertices, normals, and triangles.
          */
         Model(  const std::string name,
-                std::vector<glm::vec4> vertices,
-                std::vector<glm::vec4> normals,
+                std::vector<vec4> vertices,
+                std::vector<vec4> normals,
                 std::vector<FaceIndex> triangles);
 
         Model() {}
@@ -108,12 +110,12 @@ class Model {
         /**
          * Get the model's vertices.
          */
-        const std::vector<glm::vec4>& get_vertices() const { return m_vertices; }
+        const std::vector<vec4>& get_vertices() const { return m_vertices; }
 
         /**
          * Get the model's normals.
          */
-        const std::vector<glm::vec4>& get_normals() const { return m_normals; }
+        const std::vector<vec4>& get_normals() const { return m_normals; }
 
         /**
          * Get the model's face indices.

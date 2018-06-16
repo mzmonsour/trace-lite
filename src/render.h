@@ -10,7 +10,7 @@
 /**
  * Perform gamma correction, moving from linear colors to sRGB.
  */
-glm::vec3 linear_to_srgb(glm::vec3 color);
+vec3 linear_to_srgb(vec3 color);
 
 /**
  */
@@ -41,8 +41,8 @@ struct rgb_color {
 class Camera {
     private:
 
-        glm::mat4x4 m_xform;
-        float m_fov, m_aspect;
+        mat4 m_xform;
+        scalar m_fov, m_aspect;
 
     public:
 
@@ -53,16 +53,16 @@ class Camera {
          * @param fov Vertical fov in radians.
          * @param aspect Aspect ratio given as width / height.
          */
-        Camera(glm::mat4x4 xform, float fov, float aspect);
+        Camera(mat4 xform, scalar fov, scalar aspect);
 
         ~Camera() {}
 
-        glm::mat4x4 get_transform() const { return m_xform; }
+        mat4 get_transform() const { return m_xform; }
 
         /**
          * Set the camera transform.
          */
-        void set_transform(glm::mat4x4 xform) { m_xform = glm::inverse(xform); }
+        void set_transform(mat4 xform) { m_xform = glm::inverse(xform); }
 
         /**
          * Compute a ray directed at a virtual screen.
@@ -70,7 +70,7 @@ class Camera {
          * @param pos Position of the ray on the screen from [-1,1]. (-1, -1) lies at the top left, and
          * (1, 1) lies at the bottom right.
          */
-        ray compute_ray(glm::vec2 pos) const;
+        ray compute_ray(vec2 pos) const;
 };
 
 class Scene {
