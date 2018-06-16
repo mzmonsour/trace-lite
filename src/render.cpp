@@ -73,9 +73,9 @@ std::vector<rgb_color> Scene::render(Camera& cam, render_options opts) const
                 if (trace.hitobj != nullptr) {
                     // TODO Shading and materials
                     if (opts.debug_flags & debug_mode::normal_coloring) {
-                        sample = glm::vec3(trace.hitnorm);
+                        sample = (glm::vec3(trace.hitnorm) + glm::vec3(1.0, 1.0, 1.0)) * 0.5f;
                     } else if (opts.debug_flags & debug_mode::interp_coloring) {
-                        sample = glm::vec3(trace.barycenter);
+                        sample = (glm::vec3(trace.barycenter) + glm::vec3(1.0, 1.0, 1.0)) * 0.5f;
                     } else {
                         sample = glm::vec3(0.7, 0.7, 0.7);
                     }
@@ -88,7 +88,11 @@ std::vector<rgb_color> Scene::render(Camera& cam, render_options opts) const
                 color += s;
             }
             color *= 1.0f/((float)samples.size());
-            color = linear_to_srgb(color);
+            // Disable sRGB conversion when using debug color modes
+            if (!(opts.debug_flags & debug_mode::normal_coloring)
+                    && !(opts.debug_flags & debug_mode::interp_coloring)) {
+                color = linear_to_srgb(color);
+            }
             rgb_color imgcolor;
             imgcolor.r = color.r * 255;
             imgcolor.g = color.g * 255;
