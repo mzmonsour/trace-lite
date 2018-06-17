@@ -75,7 +75,7 @@ std::vector<rgb_color> Scene::render(Camera& cam, render_options opts) const
                     if (opts.debug_flags & debug_mode::normal_coloring) {
                         sample = (vec3(trace.hitnorm) + vec3(1.0, 1.0, 1.0)) * (scalar)0.5;
                     } else if (opts.debug_flags & debug_mode::interp_coloring) {
-                        sample = (vec3(trace.barycenter) + vec3(1.0, 1.0, 1.0)) * (scalar)0.5;
+                        sample = vec3(trace.barycenter);
                     } else {
                         sample = vec3(0.7, 0.7, 0.7);
                     }
