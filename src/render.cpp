@@ -4,6 +4,9 @@
 #include <glm/geometric.hpp>
 #include <iostream>
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
+
 render_options::render_options() :
     width(640),
     height(480),
@@ -71,6 +74,10 @@ std::vector<rgb_color> Scene::render(Camera& cam, render_options opts) const
                 trace_info trace = trace_ray(view_ray, m_objects);
                 vec3 sample(0.0, 0.0, 0.0);
                 if (trace.hitobj != nullptr) {
+                    if (glm::dot(trace.hitnorm, vec4(0.0, 0.0, 1.0, 0.0)) < 0) {
+                        std::cout << "Back facing sample at (x,y,s): ("
+                            << x << ", " << y << ", " << s << ")" << std::endl;
+                    }
                     // TODO Shading and materials
                     if (opts.debug_flags & debug_mode::normal_coloring) {
                         sample = (vec3(trace.hitnorm) + vec3(1.0, 1.0, 1.0)) * (scalar)0.5;
