@@ -33,6 +33,7 @@ struct render_options {
     int debug_flags; // Select bitflags from debug_mode
     bool msaa; // Enable MSAA
     size_t max_recursion; // Maximum number of recursive steps in renderer
+    size_t concurrency; // Number of concurrent rendering jobs
 };
 
 struct rgb_color {
@@ -96,6 +97,24 @@ class Scene {
          * @return Raw RGB image data.
          */
         std::vector<rgb_color> render(Camera& cam, render_options opts) const;
+
+        /**
+         * Render a subset of the scene using recursive ray-tracing.
+         *
+         * @param data Output RGB image data. Data is formatted using range width/height, no blank
+         * space is left for the final image.
+         * @param cam Camera from which to render the scene.
+         * @param opts Additional options for the renderer.
+         * @param x Starting x position of the range.
+         * @param y Starting y position of the range.
+         * @param width Width of the range. x + width must not exceed the final render width.
+         * @param height Height of the range. y + height must not exceed the final render height.
+         */
+        void render_range(  std::vector<rgb_color>& data,
+                            const Camera& cam,
+                            const render_options& opts,
+                            uint16_t x, uint16_t y,
+                            uint16_t width, uint16_t height) const;
 
         /**
          * Compute the color of a ray of light traveling through the scene.

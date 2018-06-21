@@ -18,6 +18,9 @@ if(USE_DOUBLE_PRECISION EQUAL 1)
     add_definitions(-DUSE_DOUBLE_PRECISION)
 endif()
 
+find_package(Threads REQUIRED)
+set(libs ${libs} ${CMAKE_THREAD_LIBS_INIT})
+
 find_package(Boost COMPONENTS program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 set(libs ${libs} ${Boost_LIBRARIES})

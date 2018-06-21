@@ -4,6 +4,8 @@
 #include <glm/geometric.hpp>
 #include <glm/gtc/constants.hpp>
 #include <iostream>
+#include <thread>
+#include <functional>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
@@ -13,7 +15,8 @@ render_options::render_options() :
     height(480),
     debug_flags(debug_mode::none),
     msaa(false),
-    max_recursion(1)
+    max_recursion(1),
+    concurrency(1)
 {
 }
 
@@ -51,15 +54,18 @@ Scene::Scene(const std::vector<Model>& objects, std::vector<std::unique_ptr<Ligh
 {
 }
 
-std::vector<rgb_color> Scene::render(Camera& cam, render_options opts) const
+/**
+ * Render a range of pixels in the final image.
+ */
+void Scene::render_range(   std::vector<rgb_color>& data,
+                            const Camera& cam,
+                            const render_options& opts,
+                            uint16_t initx, uint16_t inity,
+                            uint16_t width, uint16_t height) const
 {
-    std::vector<rgb_color> img;
-    img.reserve(opts.width * opts.height);
     size_t progress = 0, percent = 0;
-    std::cout << "Rendering" << std::flush;
-    for (int y = 0; y < opts.height; ++y) {
-        for (int x = 0; x < opts.width; ++x) {
-            progress++;
+    for (int y = inity; y < inity + height; ++y) {
+        for (int x = initx; x < initx + width; ++x) {
             size_t samplecount, msfactor = 1;
             if (opts.msaa) {
                 msfactor = 2;
@@ -90,12 +96,45 @@ std::vector<rgb_color> Scene::render(Camera& cam, render_options opts) const
             imgcolor.r = color.r * 255;
             imgcolor.g = color.g * 255;
             imgcolor.b = color.b * 255;
-            img.push_back(imgcolor);
+            data.push_back(imgcolor);
+            progress++;
         }
-        if ((progress * 100) / (opts.width * opts.height) > percent) {
+        if ((progress * 100 / opts.concurrency) / (width * height) > percent) {
             percent++;
             std::cout << "." << std::flush;
         }
+    }
+}
+
+std::vector<rgb_color> Scene::render(Camera& cam, render_options opts) const
+{
+    std::vector<rgb_color> img;
+    img.reserve(opts.width * opts.height);
+    std::cout << "Rendering..." << std::flush;
+    std::vector<std::vector<rgb_color>> thread_data;
+    std::vector<std::thread> thread_handles;
+    uint16_t y, height;
+    y = 0;
+    height = opts.height / opts.concurrency;
+    thread_data.reserve(opts.concurrency);
+    for (size_t t = 0; t < opts.concurrency; t++) {
+        if (t == opts.concurrency - 1) {
+            height = opts.height - y;
+        }
+        thread_data.emplace_back();
+        thread_data[t].reserve(opts.width * height);
+        thread_handles.emplace_back(&Scene::render_range, this,
+                std::ref(thread_data[t]),
+                std::cref(cam),
+                std::cref(opts),
+                0, y, opts.width, height);
+        y += height;
+    }
+    for (auto& h : thread_handles) {
+        h.join();
+    }
+    for (auto& data : thread_data) {
+        img.insert(img.end(), data.cbegin(), data.cend());
     }
     std::cout << "done!" << std::endl;
     return img;
