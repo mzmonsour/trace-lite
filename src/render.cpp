@@ -74,7 +74,7 @@ std::vector<rgb_color> Scene::render(Camera& cam, render_options opts) const
                         vec2(  2.0 * (((scalar)x*msfactor) + sx) / ((scalar)opts.width * msfactor) - 1.0,
                                     1.0 - 2.0 * (((scalar)y*msfactor) + sy) / ((scalar)opts.height * msfactor)));
                 vec3 sample = this->compute_ray_color(view_ray, opts, opts.max_recursion);
-                samples.push_back(sample);
+                samples.push_back(glm::clamp(sample, (scalar)0.0, (scalar)1.0));
             }
             vec3 color(0.0, 0.0, 0.0);
             for (auto& s : samples) {
