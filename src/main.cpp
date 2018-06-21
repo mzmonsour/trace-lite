@@ -2,6 +2,7 @@
 #include <glm/vec3.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <boost/program_options.hpp>
+#include <thread>
 #include "obj_file.h"
 #include "model.h"
 #include "light.h"
@@ -21,6 +22,7 @@ int main(int argc, char **argv)
     vec3 eyepos;
     std::string eyestr;
     scalar fov;
+    size_t threads;
 
     po::options_description opts("Hello");
     po::positional_options_description posopts;
@@ -37,6 +39,7 @@ int main(int argc, char **argv)
         ("eye", po::value<std::string>(&eyestr)->default_value("0,0,10"), "Eye position of camera")
         ("fov,f", po::value<scalar>(&fov)->default_value(90.0f), "Vertical field of view in degrees")
         ("msaa", "Enable Multisample Anti-Aliasing")
+        ("threads,t", po::value<size_t>(&threads)->default_value(0), "Number of rendering threads (0 uses a reasonable default)")
         ;
     po::variables_map argmap;
     po::store(po::command_line_parser(argc, argv).options(opts).positional(posopts).run(), argmap);
@@ -113,8 +116,12 @@ int main(int argc, char **argv)
     if (argmap.count("msaa")) {
         ropts.msaa = true;
     }
+    if (threads == 0) {
+        threads = std::thread::hardware_concurrency();
+    }
+    ropts.concurrency = threads;
+    std::cout << "Using " << threads << " rendering threads" << std::endl;
     std::vector<rgb_color> imgdata = scene.render(cam, ropts);
-
 
     pnghelper_write_image_file(outfile.c_str(), &imgdata[0], img_width, img_height);
 
