@@ -18,9 +18,7 @@ trace_info trace_ray(const ray& r, const std::vector<Model>& objs)
             p1 = tri.p1();
             p2 = tri.p2();
             // Compute plane intersection
-            // TODO Should norm be calculated, or provided?
-            // Pre-calculated norm appears to be more accurate.
-            vec3 norm = tri.surface_normal(vec3(1.0, 0.0, 0.0));
+            vec3 norm = tri.face_normal();
             plane = vec4(norm, -glm::dot(norm, vec3(p0)));
             d = -glm::dot(plane, r.origin) / glm::dot(plane, r.dir);
             if (d < 0 || d >= best_d) {

@@ -1,6 +1,7 @@
 #include "model.h"
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
+#include <glm/geometric.hpp>
 
 Model::Model(  const std::string name,
                 std::vector<vec4> vertices,
@@ -11,6 +12,16 @@ Model::Model(  const std::string name,
     m_normals(std::move(normals)),
     m_triangles(std::move(triangles))
 {
+    // Pre-compute face normals for ray tracing purposes
+    for (auto& tri : m_triangles) {
+        vec4 norm, p0, p1, p2;
+        tri.tri_normal = m_normals.size();
+        p0 = m_vertices[tri.vertices[0]];
+        p1 = m_vertices[tri.vertices[1]];
+        p2 = m_vertices[tri.vertices[2]];
+        norm = vec4(glm::normalize(glm::cross(vec3(p1-p0), vec3(p2-p0))), 1.0);
+        m_normals.push_back(norm);
+    }
 }
 
 Model::triangle_iter Model::begin() const
@@ -86,6 +97,11 @@ vec4 Model::triangle::p1() const
 vec4 Model::triangle::p2() const
 {
     return m_container.get_vertices()[m_idx->vertices[2]];
+}
+
+vec4 Model::triangle::face_normal() const
+{
+    return m_container.get_normals()[m_idx->tri_normal];
 }
 
 vec4 Model::triangle::surface_normal(vec3 coords) const

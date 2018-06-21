@@ -9,6 +9,7 @@
 struct FaceIndex {
     int vertices[3];
     int normals[3];
+    int tri_normal;
 };
 
 class Model {
@@ -51,6 +52,12 @@ class Model {
                  * Get the third vertex of the triangle.
                  */
                 vec4 p2() const;
+
+                /**
+                 * Get the face normal of the triangle. This is different that the surface normal,
+                 * which may be interpolated or given by a normal map.
+                 */
+                vec4 face_normal() const;
                 
                 /**
                  * Compute the normal at a point on the surface of the triangle.
