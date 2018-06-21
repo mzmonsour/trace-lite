@@ -1,10 +1,12 @@
 #pragma once
 
 #include "model.h"
+#include "light.h"
 #include "trace.h"
 
 #include <glm/mat4x4.hpp>
 #include <vector>
+#include <memory>
 #include <cstdint>
 
 /**
@@ -30,6 +32,7 @@ struct render_options {
     uint16_t width, height;
     int debug_flags; // Select bitflags from debug_mode
     bool msaa; // Enable MSAA
+    size_t max_recursion; // Maximum number of recursive steps in renderer
 };
 
 struct rgb_color {
@@ -76,11 +79,12 @@ class Camera {
 class Scene {
     private:
 
-        const std::vector<Model>& m_objects;
+        const std::vector<Model>&                   m_objects;
+        const std::vector<std::unique_ptr<Light>>   m_lights;
 
     public:
 
-        Scene(const std::vector<Model>& objects);
+        Scene(const std::vector<Model>& objects, std::vector<std::unique_ptr<Light>> lights);
 
         ~Scene() {}
 
@@ -92,4 +96,13 @@ class Scene {
          * @return Raw RGB image data.
          */
         std::vector<rgb_color> render(Camera& cam, render_options opts) const;
+
+        /**
+         * Compute the color of a ray of light traveling through the scene.
+         *
+         * @param ray Ray opposing the ray of light in question.
+         * @param opts Options for the renderer, which may affect lighting computation.
+         * @param steps Number of recursive steps taken to compute reflections.
+         */
+        vec3 compute_ray_color(const ray& r, const render_options& opts, size_t steps) const;
 };

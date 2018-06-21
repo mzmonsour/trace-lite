@@ -4,6 +4,7 @@
 #include <boost/program_options.hpp>
 #include "obj_file.h"
 #include "model.h"
+#include "light.h"
 #include "render.h"
 #include "png_helper.h"
 #include "types.h"
@@ -87,12 +88,19 @@ int main(int argc, char **argv)
         eyepos[i] = std::stof(eyecomp);
     }
 
+    std::vector<std::unique_ptr<Light>> lights;
+    std::unique_ptr<Light> dlight = std::make_unique<DirectionalLight>(
+                vec3(1.0, 1.0, 1.0), 1.0,
+                glm::normalize(vec4(1.0, -1.0, 0.0, 0.0))
+                );
+    lights.push_back(std::move(dlight));
+
     render_options ropts;
     ropts.width = img_width;
     ropts.height = img_height;
     Camera cam(glm::lookAt(eyepos, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0)),
             glm::radians(fov), ((scalar)img_width)/((scalar)img_height));
-    Scene scene(obj.get_models());
+    Scene scene(obj.get_models(), std::move(lights));
     ropts.debug_flags = debug_mode::none;
     if (argmap.count("normal-coloring")) {
         std::cout << "DEBUG: Normal coloring mode enabled" << std::endl;

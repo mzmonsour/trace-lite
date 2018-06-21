@@ -2,6 +2,7 @@
 #include <glm/common.hpp>
 #include <glm/trigonometric.hpp>
 #include <glm/geometric.hpp>
+#include <glm/gtc/constants.hpp>
 #include <iostream>
 
 #define GLM_ENABLE_EXPERIMENTAL
@@ -11,7 +12,8 @@ render_options::render_options() :
     width(640),
     height(480),
     debug_flags(debug_mode::none),
-    msaa(false)
+    msaa(false),
+    max_recursion(1)
 {
 }
 
@@ -43,8 +45,9 @@ ray Camera::compute_ray(vec2 pos) const
     return out;
 }
 
-Scene::Scene(const std::vector<Model>& objects) :
-    m_objects(objects)
+Scene::Scene(const std::vector<Model>& objects, std::vector<std::unique_ptr<Light>> lights) :
+    m_objects(objects),
+    m_lights(std::move(lights))
 {
 }
 
@@ -53,7 +56,6 @@ std::vector<rgb_color> Scene::render(Camera& cam, render_options opts) const
     std::vector<rgb_color> img;
     img.reserve(opts.width * opts.height);
     size_t progress = 0, percent = 0;
-    size_t hits = 0;
     std::cout << "Rendering" << std::flush;
     for (int y = 0; y < opts.height; ++y) {
         for (int x = 0; x < opts.width; ++x) {
@@ -71,23 +73,7 @@ std::vector<rgb_color> Scene::render(Camera& cam, render_options opts) const
                 ray view_ray = cam.compute_ray(
                         vec2(  2.0 * (((scalar)x*msfactor) + sx) / ((scalar)opts.width * msfactor) - 1.0,
                                     1.0 - 2.0 * (((scalar)y*msfactor) + sy) / ((scalar)opts.height * msfactor)));
-                trace_info trace = trace_ray(view_ray, m_objects);
-                vec3 sample(0.0, 0.0, 0.0);
-                if (trace.hitobj != nullptr) {
-                    if (glm::dot(trace.hitnorm, vec4(0.0, 0.0, 1.0, 0.0)) < 0) {
-                        std::cout << "Back facing sample at (x,y,s): ("
-                            << x << ", " << y << ", " << s << ")" << std::endl;
-                    }
-                    // TODO Shading and materials
-                    if (opts.debug_flags & debug_mode::normal_coloring) {
-                        sample = (vec3(trace.hitnorm) + vec3(1.0, 1.0, 1.0)) * (scalar)0.5;
-                    } else if (opts.debug_flags & debug_mode::interp_coloring) {
-                        sample = vec3(trace.barycenter);
-                    } else {
-                        sample = vec3(0.7, 0.7, 0.7);
-                    }
-                    hits++;
-                }
+                vec3 sample = this->compute_ray_color(view_ray, opts, opts.max_recursion);
                 samples.push_back(sample);
             }
             vec3 color(0.0, 0.0, 0.0);
@@ -112,6 +98,52 @@ std::vector<rgb_color> Scene::render(Camera& cam, render_options opts) const
         }
     }
     std::cout << "done!" << std::endl;
-    std::cout << "Total ray hits: " << hits << std::endl;
     return img;
+}
+
+vec3 Scene::compute_ray_color(const ray& r, const render_options& opts, size_t steps) const
+{
+    vec3 color(0.0, 0.0, 0.0);
+    if (steps == 0) {
+        return color;
+    }
+    trace_info trace = trace_ray(r, m_objects);
+    if (trace.hitobj != nullptr) {
+            vec4 v, n; // View dir, normal
+            v = -r.dir;
+            n = trace.hitnorm;
+            if (trace.hitobj != nullptr) {
+                if (glm::dot(trace.hitnorm, r.dir) > 0) {
+                    std::cout << "Back facing trace" << std::endl;
+                }
+                // TODO Shading and materials
+                if (opts.debug_flags & debug_mode::normal_coloring) {
+                    color = (vec3(trace.hitnorm) + vec3(1.0, 1.0, 1.0)) * (scalar)0.5;
+                } else if (opts.debug_flags & debug_mode::interp_coloring) {
+                    color = vec3(trace.barycenter);
+                } else {
+                    for (auto& baselight : m_lights) {
+                        vec4 l, h; // Light dir, half dir
+                        vec3 El; // Irradiance
+                        switch (baselight->type()) {
+                            case LightType::Directional: {
+                                auto* light = dynamic_cast<DirectionalLight*>(baselight.get());
+                                El = light->color() * light->intensity();
+                                l = -light->direction();
+                            } break;
+                            case LightType::Point: {
+                                auto* light = dynamic_cast<PointLight*>(baselight.get());
+                                l = light->position() - trace.hitpos;
+                                scalar r2 = glm::dot(l, l);
+                                l = glm::normalize(l);
+                                El = light->color() * light->intensity() / r2;
+                            } break;
+                        }
+                        h = glm::normalize(v + l);
+                        color += glm::one_over_pi<scalar>() * vec3(1.0, 1.0, 1.0) * El * glm::dot(l,n);
+                    }
+                }
+            }
+    }
+    return color;
 }
