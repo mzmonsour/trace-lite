@@ -116,12 +116,11 @@ std::vector<rgb_color> Scene::render(Camera& cam, render_options opts) const
     uint16_t y, height;
     y = 0;
     height = opts.height / opts.concurrency;
-    thread_data.reserve(opts.concurrency);
+    thread_data.resize(opts.concurrency);
     for (size_t t = 0; t < opts.concurrency; t++) {
         if (t == opts.concurrency - 1) {
             height = opts.height - y;
         }
-        thread_data.emplace_back();
         thread_data[t].reserve(opts.width * height);
         thread_handles.emplace_back(&Scene::render_range, this,
                 std::ref(thread_data[t]),
