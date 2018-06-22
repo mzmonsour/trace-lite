@@ -152,9 +152,11 @@ vec3 Scene::compute_ray_color(const ray& r, const render_options& opts, size_t s
             v = -r.dir;
             n = trace.hitnorm;
             if (trace.hitobj != nullptr) {
+#ifdef BACKFACE_DIAGNOSTIC
                 if (glm::dot(trace.hitnorm, r.dir) > 0) {
                     std::cout << "Back facing trace" << std::endl;
                 }
+#endif
                 // TODO Shading and materials
                 if (opts.debug_flags & debug_mode::normal_coloring) {
                     color = (vec3(trace.hitnorm) + vec3(1.0, 1.0, 1.0)) * (scalar)0.5;

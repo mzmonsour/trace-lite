@@ -17,6 +17,9 @@ set(sources
 if(USE_DOUBLE_PRECISION EQUAL 1)
     add_definitions(-DUSE_DOUBLE_PRECISION)
 endif()
+if(BACKFACE_DIAGNOSTIC EQUAL 1)
+    add_definitions(-DBACKFACE_DIAGNOSTIC)
+endif()
 
 find_package(Threads REQUIRED)
 set(libs ${libs} ${CMAKE_THREAD_LIBS_INIT})
