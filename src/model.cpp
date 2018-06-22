@@ -12,8 +12,10 @@ Model::Model(  const std::string name,
     m_normals(std::move(normals)),
     m_triangles(std::move(triangles))
 {
-    // Pre-compute face normals for ray tracing purposes
+    m_missing_norm_idx = m_normals.size();
+    m_normals.push_back(vec4(0.0, 0.0, -1.0, 0.0));
     for (auto& tri : m_triangles) {
+        // Pre-compute face normals for ray tracing purposes
         vec4 norm, p0, p1, p2;
         tri.tri_normal = m_normals.size();
         p0 = m_vertices[tri.vertices[0]];
@@ -21,6 +23,12 @@ Model::Model(  const std::string name,
         p2 = m_vertices[tri.vertices[2]];
         norm = vec4(glm::normalize(glm::cross(vec3(p1-p0), vec3(p2-p0))), 1.0);
         m_normals.push_back(norm);
+        // Fill in missing normals
+        for (int i = 0; i < 3; ++i) {
+            if (tri.normals[i] < 0) {
+                tri.normals[i] = m_missing_norm_idx;
+            }
+        }
     }
 }
 

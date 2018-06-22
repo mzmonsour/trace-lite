@@ -28,12 +28,11 @@ ParseFaceResult parse_obj_face(std::istringstream& in, FaceIndex& out)
             if (delimA == std::string::npos) {
                 // Vertex only
                 out.vertices[vertices] = std::stoi(indexgroup);
-                // TODO: -1 is a poor sentinel value. Prevents negative indexing on normals.
-                out.normals[vertices] = -1;
+                out.normals[vertices] = 0;
             } else if (delimB == std::string::npos) {
                 // Vertex and texcoords
                 out.vertices[vertices] = std::stoi(indexgroup.substr(0, delimA));
-                out.normals[vertices] = -1;
+                out.normals[vertices] = 0;
             } else {
                 // Vertex, texcoords, and normals
                 out.vertices[vertices] = std::stoi(indexgroup.substr(0, delimA));
@@ -94,14 +93,15 @@ ObjFile::ObjFile(const std::string& path) :
                 switch (parse_obj_face(lparse, fidx)) {
                     case ParseFaceResult::Ok: {
                         for (int i = 0; i < 3; ++i) {
+                            // Shift 1-indexing to 0 indexing, negative indices traverse backwards
                             if (fidx.vertices[i] < 0) {
                                 fidx.vertices[i] += vertices.size();
                             } else {
-                                // Shift 1-indexing to 0-indexing
                                 fidx.vertices[i]--;
                             }
+                            // Same as for vertices, -1 now correctly indicates "no normal"
                             if (fidx.normals[i] < 0) {
-                                // TODO: Negative indexing on normals. (see parser also)
+                                fidx.vertices[i] += normals.size();
                             } else {
                                 fidx.normals[i]--;
                             }

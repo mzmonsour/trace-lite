@@ -17,6 +17,7 @@ class Model {
 
         const std::string m_name;
 
+        size_t m_missing_norm_idx;
         std::vector<vec4>  m_vertices;
         std::vector<vec4>  m_normals;
         std::vector<FaceIndex>  m_triangles;
