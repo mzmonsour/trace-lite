@@ -6,11 +6,14 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
 
 set(sources
+    src/bvh.cpp
     src/main.cpp
-    src/obj_file.cpp
+    src/mesh_instance.cpp
     src/model.cpp
+    src/obj_file.cpp
     src/render.cpp
     src/trace.cpp
+    src/types.cpp
     src/png_helper.c
     )
 

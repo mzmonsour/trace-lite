@@ -5,6 +5,24 @@
 
 const static scalar ERROR_THOLD = 0.00005;
 
+Ray::Ray(vec4 origin, vec4 dir) :
+    origin(origin),
+    dir(dir) {}
+
+scalar Ray::intersect_aabb(const aabb& volume) const
+{
+    // STUB
+    return (scalar)-1.0;
+}
+
+trace_info Ray::intersect_mesh(const MeshInstance& mesh) const
+{
+    // STUB
+    trace_info info;
+    info.hitobj = nullptr;
+    return info;
+}
+
 trace_info trace_ray(const ray& r, const std::vector<Model>& objs)
 {
     trace_info info;
@@ -47,7 +65,7 @@ trace_info trace_ray(const ray& r, const std::vector<Model>& objs)
             w = qmat * rq;
             if (w.x >= 0.0 - ERROR_THOLD && w.y >= 0.0 - ERROR_THOLD && w.x + w.y <= 1.0 + ERROR_THOLD) {
                 // Barycenter is valid; Point lies within triangle
-                info.hitobj = &obj;
+                info.hitobj = (const MeshInstance*)&obj; // TODO Remove spooky cast
                 info.hitpos = pout;
                 info.barycenter = vec3((scalar)1.0 - w.x - w.y, w.x, w.y);
                 // TODO Return this, or computed normal?
