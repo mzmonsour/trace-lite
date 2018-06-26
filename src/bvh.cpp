@@ -2,6 +2,7 @@
 #include "convert.h"
 #include "bvh.h"
 #include "trace.h"
+#include <algorithm>
 
 aabb compute_mesh_aabb(const aiMesh& mesh, const mat4& xform)
 {
@@ -135,9 +136,51 @@ BVH::BVH(aiScene* scene_graph)
 
 trace_info BVH::trace_ray(const Ray& r) const
 {
-    // STUB
+    struct leaf_trace {
+        BVNode* leaf;
+        scalar dist;
+        leaf_trace(BVNode* n, scalar d) :
+            leaf(n), dist(d) {}
+    };
     trace_info info;
     info.hitobj = nullptr;
+    std::vector<BVNode*> to_search;
+    std::vector<leaf_trace> hit_leaves;
+    if (m_root != nullptr) {
+        to_search.push_back(m_root.get());
+    }
+    // Trace through tree, pruning branches as needed
+    while (!to_search.empty()) {
+        BVNode* n = to_search.back();
+        to_search.pop_back();
+        scalar dist = r.intersect_aabb(n->bounding_volume());
+        if (dist >= 0) {
+            if (n->is_leaf()) {
+                hit_leaves.emplace_back(n, dist);
+            } else {
+                if (n->m_left != nullptr) {
+                    to_search.push_back(n->m_left.get());
+                }
+                if (n->m_right != nullptr) {
+                    to_search.push_back(n->m_right.get());
+                }
+            }
+        }
+    }
+    // Find closest intersection
+    std::sort(hit_leaves.begin(), hit_leaves.end(),
+            [](const auto& a, const auto& b) { return a.dist < b.dist; });
+    info.distance = SCALAR_INF;
+    for (auto& lt : hit_leaves) {
+        if (info.distance < lt.dist) {
+            // Early stop, we already know the best possible trace
+            break;
+        }
+        struct trace_info temp = r.intersect_mesh(*(lt.leaf->object()));
+        if (temp.hitobj != nullptr && temp.distance < info.distance) {
+            info = temp;
+        }
+    }
     return info;
 }
 
