@@ -48,7 +48,7 @@ ray Camera::compute_ray(vec2 pos) const
     return out;
 }
 
-Scene::Scene(const std::vector<Model>& objects, std::vector<std::unique_ptr<Light>> lights) :
+Renderer::Renderer(const std::vector<Model>& objects, std::vector<std::unique_ptr<Light>> lights) :
     m_objects(objects),
     m_lights(std::move(lights))
 {
@@ -57,7 +57,7 @@ Scene::Scene(const std::vector<Model>& objects, std::vector<std::unique_ptr<Ligh
 /**
  * Render a range of pixels in the final image.
  */
-void Scene::render_range(   std::vector<rgb_color>& data,
+void Renderer::render_range(   std::vector<rgb_color>& data,
                             const Camera& cam,
                             const render_options& opts,
                             uint16_t initx, uint16_t inity,
@@ -106,7 +106,7 @@ void Scene::render_range(   std::vector<rgb_color>& data,
     }
 }
 
-std::vector<rgb_color> Scene::render(Camera& cam, render_options opts) const
+std::vector<rgb_color> Renderer::render(Camera& cam, render_options opts) const
 {
     std::vector<rgb_color> img;
     img.reserve(opts.width * opts.height);
@@ -122,7 +122,7 @@ std::vector<rgb_color> Scene::render(Camera& cam, render_options opts) const
             height = opts.height - y;
         }
         thread_data[t].reserve(opts.width * height);
-        thread_handles.emplace_back(&Scene::render_range, this,
+        thread_handles.emplace_back(&Renderer::render_range, this,
                 std::ref(thread_data[t]),
                 std::cref(cam),
                 std::cref(opts),
@@ -139,7 +139,7 @@ std::vector<rgb_color> Scene::render(Camera& cam, render_options opts) const
     return img;
 }
 
-vec3 Scene::compute_ray_color(const ray& r, const render_options& opts, size_t steps) const
+vec3 Renderer::compute_ray_color(const ray& r, const render_options& opts, size_t steps) const
 {
     vec3 color(0.0, 0.0, 0.0);
     if (steps == 0) {

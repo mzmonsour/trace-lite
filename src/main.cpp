@@ -103,7 +103,7 @@ int main(int argc, char **argv)
     ropts.height = img_height;
     Camera cam(glm::lookAt(eyepos, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0)),
             glm::radians(fov), ((scalar)img_width)/((scalar)img_height));
-    Scene scene(obj.get_models(), std::move(lights));
+    Renderer renderer(obj.get_models(), std::move(lights));
     ropts.debug_flags = debug_mode::none;
     if (argmap.count("normal-coloring")) {
         std::cout << "DEBUG: Normal coloring mode enabled" << std::endl;
@@ -121,7 +121,7 @@ int main(int argc, char **argv)
     }
     ropts.concurrency = threads;
     std::cout << "Using " << threads << " rendering threads" << std::endl;
-    std::vector<rgb_color> imgdata = scene.render(cam, ropts);
+    std::vector<rgb_color> imgdata = renderer.render(cam, ropts);
 
     pnghelper_write_image_file(outfile.c_str(), &imgdata[0], img_width, img_height);
 

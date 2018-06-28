@@ -77,7 +77,7 @@ class Camera {
         ray compute_ray(vec2 pos) const;
 };
 
-class Scene {
+class Renderer {
     private:
 
         const std::vector<Model>&                   m_objects;
@@ -85,9 +85,9 @@ class Scene {
 
     public:
 
-        Scene(const std::vector<Model>& objects, std::vector<std::unique_ptr<Light>> lights);
+        Renderer(const std::vector<Model>& objects, std::vector<std::unique_ptr<Light>> lights);
 
-        ~Scene() {}
+        ~Renderer() {}
 
         /**
          * Render the scene using a recursive ray-tracing method.
