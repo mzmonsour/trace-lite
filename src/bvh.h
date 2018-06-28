@@ -3,6 +3,7 @@
 #include "types.h"
 #include "mesh.h"
 #include "aabb.h"
+#include "scene.h"
 #include <memory>
 #include <vector>
 #include <glm/vec3.hpp>
@@ -30,7 +31,7 @@ class BVH {
         /**
          * Constructs a BVH given a scene graph.
          */
-        BVH(const std::vector<Mesh>& mesh_list, const aiScene* scene_graph);
+        BVH(const Scene& scene_graph);
 
         /**
          * Trace a ray into the BVH. If the ray intersects with any objects in the scene, information

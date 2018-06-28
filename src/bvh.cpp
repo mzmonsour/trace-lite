@@ -8,17 +8,17 @@
  * Build the leaves of the BVH from objects in the scene recursively.
  */
 static void build_bvh_leaves(  std::vector<std::shared_ptr<BVNode>>& leaves,
-                                const std::vector<Mesh>& mesh_list,
-                                const aiScene* scene_graph, const aiNode* node, const mat4& xform)
+                                const Scene& scene_graph, const aiNode* node,
+                                const mat4& xform)
 {
     mat4 this_xform = xform * assimp_mat_to_glm(node->mTransformation);
     for (unsigned int i = 0; i < node->mNumMeshes; ++i) {
-        const Mesh& mesh = mesh_list[node->mMeshes[i]];
+        const Mesh& mesh = scene_graph.mesh_list()[node->mMeshes[i]];
         auto instance = std::make_unique<MeshInstance>(mesh, this_xform);
         leaves.emplace_back(std::make_shared<BVNode>(aabb(*instance), instance));
     }
     for (unsigned int i = 0; i < node->mNumChildren; ++i) {
-        build_bvh_leaves(leaves, mesh_list, scene_graph, node->mChildren[i], this_xform);
+        build_bvh_leaves(leaves, scene_graph, node->mChildren[i], this_xform);
     }
 }
 
@@ -87,10 +87,10 @@ static std::shared_ptr<BVNode> build_bvh_topdown(bvn_iter begin, bvn_iter end)
     return std::make_shared<BVNode>(box, left, right);
 }
 
-BVH::BVH(const std::vector<Mesh>& mesh_list, const aiScene* scene_graph)
+BVH::BVH(const Scene& scene_graph)
 {
     std::vector<std::shared_ptr<BVNode>> leaves;
-    build_bvh_leaves(leaves, mesh_list, scene_graph, scene_graph->mRootNode, mat4());
+    build_bvh_leaves(leaves, scene_graph, scene_graph.assimp_scene()->mRootNode, mat4());
     m_root = build_bvh_topdown(leaves.begin(), leaves.end());
 }
 

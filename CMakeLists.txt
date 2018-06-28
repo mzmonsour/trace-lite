@@ -13,6 +13,7 @@ set(sources
     src/model.cpp
     src/obj_file.cpp
     src/render.cpp
+    src/scene.cpp
     src/trace.cpp
     src/types.cpp
     src/png_helper.c
