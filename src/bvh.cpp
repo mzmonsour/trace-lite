@@ -4,61 +4,21 @@
 #include "trace.h"
 #include <algorithm>
 
-aabb compute_mesh_aabb(const aiMesh& mesh, const mat4& xform)
-{
-    aabb object, world;
-    vec3 obb[8];
-    world.max = object.max = VEC3_MINIMUM;
-    world.min = object.min = VEC3_MAXIMUM;
-    // Compute extents of AABB in object space
-    // TODO: Object space AABB is computed per instance, perhaps we should cache this per mesh?
-    for (unsigned int i = 0; i < mesh.mNumVertices; ++i) {
-        for (int c = 0; c < 3; ++c) {
-            if (mesh.mVertices[i][c] < object.min[c]) {
-                object.min[c] = mesh.mVertices[i][c];
-            }
-            if (mesh.mVertices[i][c] > object.max[c]) {
-                object.max[c] = mesh.mVertices[i][c];
-            }
-        }
-    }
-    // Transform object space AABB to world space OBB
-    for (int i = 0; i < 2; ++i) {
-        for (int j = 0; j < 2; ++j) {
-            for (int k = 0; k < 2; ++k) {
-                obb[i*4 + j*2 + k] = vec3(xform * vec4(object[i].x, object[j].y, object[k].z, 1.0));
-            }
-        }
-    }
-    // Compute world space AABB from OBB
-    for (unsigned int i = 0; i < 8; ++i) {
-        for (int c = 0; c < 3; ++c) {
-            if (obb[i][c] < world.min[c]) {
-                world.min[c] = obb[i][c];
-            }
-            if (obb[i][c] > world.max[c]) {
-                world.max[c] = obb[i][c];
-            }
-        }
-    }
-    return world;
-}
-
 /**
  * Build the leaves of the BVH from objects in the scene recursively.
  */
 static void build_bvh_leaves(  std::vector<std::shared_ptr<BVNode>>& leaves,
-                                aiScene* scene_graph, aiNode* node, const mat4& xform)
+                                const std::vector<Mesh>& mesh_list,
+                                const aiScene* scene_graph, const aiNode* node, const mat4& xform)
 {
     mat4 this_xform = xform * assimp_mat_to_glm(node->mTransformation);
     for (unsigned int i = 0; i < node->mNumMeshes; ++i) {
-        aiMesh* mesh = scene_graph->mMeshes[node->mMeshes[i]];
-        aabb volume = compute_mesh_aabb(*mesh, this_xform);
+        const Mesh& mesh = mesh_list[node->mMeshes[i]];
         auto instance = std::make_unique<MeshInstance>(mesh, this_xform);
-        leaves.emplace_back(std::make_shared<BVNode>(volume, instance));
+        leaves.emplace_back(std::make_shared<BVNode>(aabb(*instance), instance));
     }
     for (unsigned int i = 0; i < node->mNumChildren; ++i) {
-        build_bvh_leaves(leaves, scene_graph, node->mChildren[i], this_xform);
+        build_bvh_leaves(leaves, mesh_list, scene_graph, node->mChildren[i], this_xform);
     }
 }
 
@@ -127,10 +87,10 @@ static std::shared_ptr<BVNode> build_bvh_topdown(bvn_iter begin, bvn_iter end)
     return std::make_shared<BVNode>(box, left, right);
 }
 
-BVH::BVH(aiScene* scene_graph)
+BVH::BVH(const std::vector<Mesh>& mesh_list, const aiScene* scene_graph)
 {
     std::vector<std::shared_ptr<BVNode>> leaves;
-    build_bvh_leaves(leaves, scene_graph, scene_graph->mRootNode, mat4());
+    build_bvh_leaves(leaves, mesh_list, scene_graph, scene_graph->mRootNode, mat4());
     m_root = build_bvh_topdown(leaves.begin(), leaves.end());
 }
 

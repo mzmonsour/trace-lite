@@ -1,35 +1,14 @@
 #pragma once
 
 #include "types.h"
-#include "mesh_instance.h"
+#include "mesh.h"
+#include "aabb.h"
 #include <memory>
 #include <vector>
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
 #include <assimp/scene.h>
 #include <assimp/mesh.h>
-
-struct aabb {
-    vec3 min, max;
-
-    vec3& operator[](size_t i)
-    {
-        if (i == 0) {
-            return min;
-        } else {
-            return max;
-        }
-    }
-};
-
-/**
- * Compute the world space AABB of a mesh.
- *
- * @param mesh Mesh to build an AABB around.
- * @param xform Transform to world space.
- */
-aabb compute_mesh_aabb(const aiMesh& mesh, const mat4& xform);
-
 
 struct trace_info;
 class Ray;
@@ -51,7 +30,7 @@ class BVH {
         /**
          * Constructs a BVH given a scene graph.
          */
-        BVH(aiScene* scene_graph);
+        BVH(const std::vector<Mesh>& mesh_list, const aiScene* scene_graph);
 
         /**
          * Trace a ray into the BVH. If the ray intersects with any objects in the scene, information

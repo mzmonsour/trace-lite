@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mesh_instance.h"
+#include "mesh.h"
 #include "types.h"
 #include "model.h"
 #include "bvh.h"
