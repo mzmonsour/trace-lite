@@ -1,7 +1,8 @@
 #include "trace.h"
+#include "const.h"
 #include <glm/mat2x2.hpp>
 #include <glm/geometric.hpp>
-#include <limits>
+#include <algorithm>
 
 const static scalar ERROR_THOLD = 0.00005;
 
@@ -11,8 +12,48 @@ Ray::Ray(vec4 origin, vec4 dir) :
 
 scalar Ray::intersect_aabb(const aabb& volume) const
 {
-    // STUB
-    return (scalar)-1.0;
+    scalar tmin, tmax;
+    tmin = -SCALAR_INF;
+    tmax = SCALAR_INF;
+    vec3 half = (volume.max - volume.min) * (scalar)0.5;
+    vec3 center = (volume.max + volume.min) * (scalar)0.5;
+    vec3 p = vec3(this->origin) - center;
+    for (int c = 0; c < 3; ++c) {
+        scalar e = p[c];
+        scalar f = this->dir[c];
+        // TODO Pick an epsilon to negate precision errors
+        if (glm::abs(f) > 0) {
+            scalar inv_f = 1/f;
+            scalar t1 = (e + half[c]) * inv_f;
+            scalar t2 = (e - half[c]) * inv_f;
+            if (t1 > t2) {
+                std::swap(t1, t2);
+            }
+            if (t1 > tmin) {
+                tmin = t1;
+            }
+            if (t2 < tmax) {
+                tmax = t2;
+            }
+            if (tmin > tmax) {
+                // Ray misses AABB
+                return -SCALAR_INF;
+            }
+            if (tmax < 0) {
+                // Intersection lies behind ray
+                return -SCALAR_INF;
+            }
+        } else if (-e - half[c] > 0 || -e + half[c] < 0) {
+            // Ray lies parallel, but not within the AABB
+            return -SCALAR_INF;
+        }
+    }
+    if (tmin > 0) {
+        return tmin;
+    } else {
+        // Ray is inside AABB; return origin, or tmax?
+        return 0;
+    }
 }
 
 trace_info Ray::intersect_mesh(const MeshInstance& mesh) const
