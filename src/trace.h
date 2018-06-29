@@ -47,7 +47,7 @@ class Ray {
          * Test complex intersection vs a MeshInstance. Gives detailed information about the first
          * intersection along the ray. See trace_info for more info.
          */
-        trace_info intersect_mesh(const MeshInstance& mesh) const;
+        trace_info intersect_mesh(const MeshInstance& obj) const;
 
 };
 

@@ -56,11 +56,60 @@ scalar Ray::intersect_aabb(const aabb& volume) const
     }
 }
 
-trace_info Ray::intersect_mesh(const MeshInstance& mesh) const
+trace_info Ray::intersect_mesh(const MeshInstance& obj) const
 {
-    // STUB
     trace_info info;
     info.hitobj = nullptr;
+    //scalar best_d = SCALAR_INF;
+    auto& to_world = obj.transform();
+    auto& to_obj = obj.inverse_transform();
+    // Cast ray in object space
+    vec4 origin = to_obj * this->origin;
+    vec4 dir = to_obj * this->dir;
+    info.distance = SCALAR_INF;
+    for (auto& tri : obj.mesh().triangles()) {
+        scalar t;
+        auto& p0 = tri.p0();
+        auto& p1 = tri.p0();
+        auto& p2 = tri.p0();
+        auto& norm = tri.plane_normal();
+        // Compute plane intersection
+        vec4 plane(vec3(norm), -glm::dot(norm, p0));
+        t = -glm::dot(plane, origin) / glm::dot(plane, dir);
+        if (t < 0 || t > info.distance) {
+            // Plane intersects behind ray, or lies behind best trace
+            continue;
+        }
+        // Compute barycenter
+        vec4 pout = origin + t * dir;
+        vec4 r, q1, q2;
+        scalar q1q1, q1q2, q2q2;
+        vec2 w, rq;
+        mat2 qmat;
+        r = pout - p0;
+        q1 = p1 - p0;
+        q2 = p2 - p0;
+        q1q1 = glm::dot(q1, q1);
+        q2q2 = glm::dot(q2, q2);
+        q1q2 = glm::dot(q1, q2);
+        rq = vec2(glm::dot(r,q1), glm::dot(r,q2));
+        qmat[0][0] = q2q2;
+        qmat[0][1] = -q1q2;
+        qmat[1][0] = -q1q2;
+        qmat[1][1] = q1q1;
+        qmat =  (((scalar)1.0) / (q1q1 * q2q2 - q1q2 * q1q2)) * qmat;
+        w = qmat * rq;
+        if (w.x >= 0.0 - ERROR_THOLD && w.y >= 0.0 - ERROR_THOLD && w.x + w.y <= 1.0 + ERROR_THOLD) {
+            // Barycenter is valid; Point lies within triangle
+            info.hitobj = &obj;
+            info.hitpos = pout;
+            info.barycenter = vec3((scalar)1.0 - w.x - w.y, w.x, w.y);
+            info.hitnorm = tri.surface_normal(info.barycenter);
+            info.distance = t;
+        }
+    }
+    info.hitpos = to_world * info.hitpos;
+    info.hitnorm = to_world * info.hitnorm;
     return info;
 }
 
