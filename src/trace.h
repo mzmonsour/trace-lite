@@ -8,13 +8,23 @@
 #include <glm/vec4.hpp>
 #include <glm/vec3.hpp>
 
+enum struct IntersectionType {
+    None, /// No intersection occurred.
+    Intersected, /// Trace intersected volume.
+    BehindRay, // Intersection occurred behind ray.
+    InsideVolume, /// Ray origin lies inside volume.
+    Degenerate, /// Intersection occurred across volume boundary.
+};
+
 /**
- * Gives information about the result of a trace.
+ * Detailed information about a trace.
  */
 struct trace_info
 {
-    /** MeshInstance hit by the trace. Set to nullptr if trace hit nothing. */
-    const MeshInstance* hitobj;
+    /** Type of intersection that occurred. If set to None, additional state may be undefined. */
+    IntersectionType intersect_type;
+    /** MeshInstance hit by the trace. */
+    const MeshInstance *hitobj;
     /** Position of the intersection. */
     vec4 hitpos;
     /** Normal at the point of intersection. */
@@ -22,6 +32,15 @@ struct trace_info
     /** Barycenter of the intersection on the triangle. */
     vec3 barycenter;
     /** Distance of the intersection along the ray. */
+    scalar distance;
+};
+
+/**
+ * Basic information about a trace.
+ */
+struct trace_result
+{
+    IntersectionType intersect_type;
     scalar distance;
 };
 
@@ -41,7 +60,7 @@ class Ray {
          * @return Distance of the first intersection along the ray. If the distance is negative,
          * the ray does not intersect.
          */
-        scalar intersect_aabb(const aabb& volume) const;
+        trace_result intersect_aabb(const aabb& volume) const;
 
         /**
          * Test complex intersection vs a MeshInstance. Gives detailed information about the first
@@ -50,10 +69,3 @@ class Ray {
         trace_info intersect_mesh(const MeshInstance& obj) const;
 
 };
-
-struct ray {
-    vec4 origin;
-    vec4 dir;
-};
-
-trace_info trace_ray(const ray& r, const std::vector<Model>& objs);

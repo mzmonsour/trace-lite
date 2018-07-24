@@ -3,6 +3,8 @@
 #include "model.h"
 #include "light.h"
 #include "trace.h"
+#include "scene.h"
+#include "bvh.h"
 
 #include <glm/mat4x4.hpp>
 #include <vector>
@@ -74,18 +76,19 @@ class Camera {
          * @param pos Position of the ray on the screen from [-1,1]. (-1, -1) lies at the top left, and
          * (1, 1) lies at the bottom right.
          */
-        ray compute_ray(vec2 pos) const;
+        Ray compute_ray(vec2 pos) const;
 };
 
 class Renderer {
     private:
 
-        const std::vector<Model>&                   m_objects;
-        const std::vector<std::unique_ptr<Light>>   m_lights;
+        const Scene& m_scene;
+        BVH m_bvh;
+        const std::vector<std::unique_ptr<Light>> m_lights;
 
     public:
 
-        Renderer(const std::vector<Model>& objects, std::vector<std::unique_ptr<Light>> lights);
+        Renderer(const Scene& scene_graph, std::vector<std::unique_ptr<Light>> lights);
 
         ~Renderer() {}
 
@@ -123,5 +126,5 @@ class Renderer {
          * @param opts Options for the renderer, which may affect lighting computation.
          * @param steps Number of recursive steps taken to compute reflections.
          */
-        vec3 compute_ray_color(const ray& r, const render_options& opts, size_t steps) const;
+        vec3 compute_ray_color(const Ray& r, const render_options& opts, size_t steps) const;
 };

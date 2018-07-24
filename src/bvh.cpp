@@ -4,6 +4,10 @@
 #include "trace.h"
 #include <algorithm>
 
+#include <iostream>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
+
 /**
  * Build the leaves of the BVH from objects in the scene recursively.
  */
@@ -90,16 +94,23 @@ static std::shared_ptr<BVNode> build_bvh_topdown(bvn_iter begin, bvn_iter end)
 BVH::BVH(const Scene& scene_graph)
 {
     std::vector<std::shared_ptr<BVNode>> leaves;
-    build_bvh_leaves(leaves, scene_graph, scene_graph.assimp_scene()->mRootNode, mat4());
+    build_bvh_leaves(leaves, scene_graph, scene_graph.assimp_scene()->mRootNode, MAT4_IDENTITY);
+    std::cout << "BVH: Instanced " << leaves.size() << " meshes from scene graph" << std::endl;
+    for (auto& leaf : leaves) {
+        std::cout << "\tAABB Extents:"
+            << " min=" << glm::to_string(leaf->m_volume.min)
+            << " max=" << glm::to_string(leaf->m_volume.max)
+            << std::endl;
+    }
     m_root = build_bvh_topdown(leaves.begin(), leaves.end());
 }
 
 trace_info BVH::trace_ray(const Ray& r) const
 {
     struct leaf_trace {
-        BVNode* leaf;
+        BVNode *leaf;
         scalar dist;
-        leaf_trace(BVNode* n, scalar d) :
+        leaf_trace(BVNode *n, scalar d) :
             leaf(n), dist(d) {}
     };
     trace_info info;
@@ -111,18 +122,31 @@ trace_info BVH::trace_ray(const Ray& r) const
     }
     // Trace through tree, pruning branches as needed
     while (!to_search.empty()) {
-        BVNode* n = to_search.back();
+        BVNode *n = to_search.back();
         to_search.pop_back();
-        scalar dist = r.intersect_aabb(n->bounding_volume());
-        if (dist >= 0) {
+        trace_result result = r.intersect_aabb(n->bounding_volume());
+        if (result.intersect_type == IntersectionType::Intersected || result.intersect_type == IntersectionType::InsideVolume) {
+            //std::cout << "AABB HIT\n";
             if (n->is_leaf()) {
-                hit_leaves.emplace_back(n, dist);
+                hit_leaves.emplace_back(n, result.distance);
             } else {
                 if (n->m_left != nullptr) {
                     to_search.push_back(n->m_left.get());
                 }
                 if (n->m_right != nullptr) {
                     to_search.push_back(n->m_right.get());
+                }
+            }
+        } else {
+            switch (result.intersect_type) {
+                case IntersectionType::None: {
+                    //std::cout << "(NONE)\n";
+                } break;
+                case IntersectionType::BehindRay: {
+                    //std::cout << "(BEHIND)\n";
+                } break;
+                default: {
+                    //std::cout << "(UNKNOWN)\n";
                 }
             }
         }

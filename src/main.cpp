@@ -13,6 +13,8 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 
+#include "scene.h"
+
 int main(int argc, char **argv)
 {
     namespace po = boost::program_options;
@@ -33,7 +35,6 @@ int main(int argc, char **argv)
         ("output,o", po::value<std::string>(&outfile)->default_value("render.png"), "Output file location (defaults to render.png)")
         ("width,w", po::value<int>(&img_width)->default_value(1920), "Width of the output image")
         ("height,h", po::value<int>(&img_height)->default_value(1080), "Height of the output image")
-        ("dump", po::value<std::string>(&dumpfile), "Dump first model in OBJ file to this location")
         ("normal-coloring", "Enable normal coloring mode")
         ("interp-coloring", "Enable interpolated coloring mode")
         ("eye", po::value<std::string>(&eyestr)->default_value("0,0,10"), "Eye position of camera")
@@ -66,22 +67,20 @@ int main(int argc, char **argv)
     }
 
     std::string infile = argmap["input"].as<std::string>();
-    std::cout << "Loading OBJ file \"" << infile << "\"" << std::endl;
-    ObjFile obj = ObjFile(infile);
-    std::cout << obj.get_models().size() << " model(s) found:" << std::endl;
-    for (auto& mdl : obj.get_models()) {
-        std::cout << "Model \"" << mdl.get_name() << "\" ("
-            << mdl.get_vertices().size() << " vertices)" << std::endl;
-    }
-
-    if (argmap.count("dump")) {
-        if (obj.get_models().size() == 0) {
-            std::cout << "No models to dump..." << std::endl;
+    std::cout << "Loading scene from file \"" << infile << "\"" << std::endl;
+    Scene scene_graph(infile);
+    {
+        auto *s = scene_graph.assimp_scene();
+        if (s != nullptr && s->mNumMeshes > 0) {
+            std::cout << "Loaded " << s->mNumMeshes << " meshes" << std::endl;
+            for (size_t i = 0; i < s->mNumMeshes; ++i) {
+                auto *mesh = s->mMeshes[i];
+                std::cout << "\tMesh[" << i << "]: " << mesh->mName.C_Str()
+                    << " (" << mesh->mNumVertices << " vertices)" << std::endl;
+            }
         } else {
-            std::cout << "Dumping model to file..." << std::endl;
-            dump_obj_file(dumpfile, obj.get_models()[0]);
+            std::cout << "Assimp error: No meshes loaded" << std::endl;
         }
-        return 0;
     }
 
     std::string eyecomp;
@@ -103,7 +102,7 @@ int main(int argc, char **argv)
     ropts.height = img_height;
     Camera cam(glm::lookAt(eyepos, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0)),
             glm::radians(fov), ((scalar)img_width)/((scalar)img_height));
-    Renderer renderer(obj.get_models(), std::move(lights));
+    Renderer renderer(scene_graph, std::move(lights));
     ropts.debug_flags = debug_mode::none;
     if (argmap.count("normal-coloring")) {
         std::cout << "DEBUG: Normal coloring mode enabled" << std::endl;
