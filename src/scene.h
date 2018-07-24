@@ -2,12 +2,16 @@
 
 #include "mesh.h"
 #include <assimp/scene.h>
+#include <assimp/Importer.hpp>
 
 class Scene {
     private:
 
-        aiScene *m_scene;
+        Assimp::Importer m_data;
+        const aiScene *m_scene;
         std::vector<Mesh> m_mesh_list;
+
+        void process_meshes();
 
     public:
 
@@ -17,9 +21,9 @@ class Scene {
         Scene();
 
         /**
-         * Construct a scene from an imported assimp scene graph.
+         * Load a scene from a file.
          */
-        Scene(aiScene& scene);
+        Scene(std::string& file);
 
         /**
          * Get the assimp scene backing this scene.

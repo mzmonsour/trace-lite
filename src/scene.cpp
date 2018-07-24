@@ -1,10 +1,24 @@
 #include "scene.h"
 #include <iostream>
 #include <iomanip>
+#include <assimp/config.h>
+#include <assimp/postprocess.h>
 
 Scene::Scene() : m_scene(nullptr) {}
 
-Scene::Scene(aiScene& scene) : m_scene(&scene)
+Scene::Scene(std::string& file)
+{
+    m_data.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_POINT | aiPrimitiveType_LINE);
+    m_scene = m_data.ReadFile(file,
+            aiProcess_JoinIdenticalVertices |
+            aiProcess_Triangulate |
+            aiProcess_SortByPType);
+    if (m_scene != nullptr) {
+        process_meshes();
+    }
+}
+
+void Scene::process_meshes()
 {
     m_mesh_list.reserve(m_scene->mNumMeshes);
     for (unsigned int i = 0; i < m_scene->mNumMeshes; ++i) {
