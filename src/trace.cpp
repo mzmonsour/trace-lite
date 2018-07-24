@@ -17,7 +17,7 @@ scalar Ray::intersect_aabb(const aabb& volume) const
     tmax = SCALAR_INF;
     vec3 half = (volume.max - volume.min) * (scalar)0.5;
     vec3 center = (volume.max + volume.min) * (scalar)0.5;
-    vec3 p = vec3(this->origin) - center;
+    vec3 p = center - vec3(this->origin);
     for (int c = 0; c < 3; ++c) {
         scalar e = p[c];
         scalar f = this->dir[c];
@@ -70,8 +70,8 @@ trace_info Ray::intersect_mesh(const MeshInstance& obj) const
     for (auto& tri : obj.mesh().triangles()) {
         scalar t;
         auto& p0 = tri.p0();
-        auto& p1 = tri.p0();
-        auto& p2 = tri.p0();
+        auto& p1 = tri.p1();
+        auto& p2 = tri.p2();
         auto& norm = tri.plane_normal();
         // Compute plane intersection
         vec4 plane(vec3(norm), -glm::dot(norm, p0));
