@@ -7,6 +7,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
 
 set(sources
     src/aabb.cpp
+    src/assimp_tools.cpp
     src/bvh.cpp
     src/main.cpp
     src/mesh.cpp
