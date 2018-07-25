@@ -49,8 +49,14 @@ class Camera {
 
         mat4 m_xform;
         scalar m_fov, m_aspect;
+        bool m_is_fov_horizontal;
 
     public:
+
+        /**
+         * Construct a default camera.
+         */
+        Camera();
 
         /**
          * Construct a camera given a transform, vertical fov, and aspect ratio.
@@ -61,6 +67,14 @@ class Camera {
          */
         Camera(mat4 xform, scalar fov, scalar aspect);
 
+        /**
+         * Construct a camera from an assimp camera in the scene graph.
+         *
+         * @param scene Scene graph containing the camera.
+         * @param camera Assimp camera object
+         */
+        Camera(const aiScene& scene, const aiCamera& camera);
+
         ~Camera() {}
 
         mat4 get_transform() const { return m_xform; }
@@ -69,6 +83,20 @@ class Camera {
          * Set the camera transform.
          */
         void set_transform(mat4 xform) { m_xform = glm::inverse(xform); }
+
+        /**
+         * Set the vertical FOV
+         */
+        void set_fov(scalar fov);
+
+        /**
+         * Set the aspect ratio
+         *
+         * @param aspect New aspect ratio
+         * @param use_vertical_fov  If true, setting the aspect will always keep the vertical FOV.
+         *                          Otherwise, it will keep whatever FOV was originally set.
+         */
+        void set_aspect(scalar aspect, bool keep_vertical_fov=false);
 
         /**
          * Compute a ray directed at a virtual screen.

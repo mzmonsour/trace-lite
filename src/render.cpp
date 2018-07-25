@@ -1,8 +1,12 @@
 #include "render.h"
+#include "convert.h"
+#include "const.h"
+#include "assimp_tools.h"
 #include <glm/common.hpp>
 #include <glm/trigonometric.hpp>
 #include <glm/geometric.hpp>
 #include <glm/gtc/constants.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include <thread>
 #include <functional>
@@ -29,11 +33,50 @@ vec3 linear_to_srgb(vec3 color) {
     return glm::clamp(out, (scalar)0.0, (scalar)1.0);
 }
 
+Camera::Camera() :
+    m_xform(1.0),
+    m_fov(glm::radians(90.0)),
+    m_aspect(16.0 / 9.0) {}
+
 Camera::Camera(mat4 xform, scalar fov, scalar aspect) :
     m_xform(glm::inverse(xform)),
     m_fov(fov),
-    m_aspect(aspect)
+    m_aspect(aspect),
+    m_is_fov_horizontal(false)
 {
+}
+
+Camera::Camera(const aiScene& scene, const aiCamera& camera) :
+    m_fov(camera.mHorizontalFOV / camera.mAspect),
+    m_aspect(camera.mAspect),
+    m_is_fov_horizontal(true)
+{
+    mat4 node_xform = MAT4_IDENTITY;
+    std::cout << "Camera fov: " << m_fov << std::endl;
+    std::cout << "Camera aspect: " << m_aspect << std::endl;
+    if (search_assimp_scene_graph(scene, camera.mName, node_xform) != nullptr) {
+        auto pos = vec3(node_xform * assimp_vec_to_glm4(camera.mPosition, 1.0));
+        auto look_at = vec3(node_xform * assimp_vec_to_glm4(camera.mLookAt, 0.0));
+        auto up = vec3(node_xform * assimp_vec_to_glm4(camera.mUp, 0.0));
+        m_xform = glm::inverse(glm::lookAt(pos, look_at, up));
+    } else {
+        m_xform = MAT4_IDENTITY;
+    }
+}
+
+void Camera::set_fov(scalar fov)
+{
+    m_fov = fov;
+    m_is_fov_horizontal = false;
+}
+
+void Camera::set_aspect(scalar aspect, bool keep_vertical_fov)
+{
+    if (!keep_vertical_fov && m_is_fov_horizontal) {
+        scalar h_fov = m_fov * m_aspect;
+        m_fov = h_fov / aspect;
+    }
+    m_aspect = aspect;
 }
 
 Ray Camera::compute_ray(vec2 pos) const

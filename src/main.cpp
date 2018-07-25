@@ -36,6 +36,7 @@ int main(int argc, char **argv)
         ("output,o", po::value<std::string>(&outfile)->default_value("render.png"), "Output file location (defaults to render.png)")
         ("width,w", po::value<int>(&img_width)->default_value(1920), "Width of the output image")
         ("height,h", po::value<int>(&img_height)->default_value(1080), "Height of the output image")
+        ("no-aspect-override", "Do not override the camera aspect with the render resolution")
         ("normal-coloring", "Enable normal coloring mode")
         ("interp-coloring", "Enable interpolated coloring mode")
         ("eye", po::value<std::string>(&eyestr)->default_value("0,0,10"), "Eye position of camera")
@@ -100,11 +101,21 @@ int main(int argc, char **argv)
                 );
     lights.push_back(std::move(dlight));
 
+    Camera cam;
+    if (scene_graph.assimp_scene()->mNumCameras > 0) {
+        cam = Camera(*scene_graph.assimp_scene(), *scene_graph.assimp_scene()->mCameras[0]);
+        if (!argmap.count("no-aspect-override")) {
+            cam.set_aspect(((scalar)img_width) / ((scalar)img_height));
+        }
+    } else {
+        std::cout << "No cameras imported; falling back to eye param" << std::endl;
+        cam = Camera(glm::lookAt(eyepos, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0)),
+                glm::radians(fov), ((scalar)img_width)/((scalar)img_height));
+    }
+
     render_options ropts;
     ropts.width = img_width;
     ropts.height = img_height;
-    Camera cam(glm::lookAt(eyepos, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0)),
-            glm::radians(fov), ((scalar)img_width)/((scalar)img_height));
     Renderer renderer(scene_graph, std::move(lights));
     ropts.debug_flags = debug_mode::none;
     if (argmap.count("normal-coloring")) {
