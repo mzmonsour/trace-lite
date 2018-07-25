@@ -9,6 +9,7 @@
 #include "render.h"
 #include "png_helper.h"
 #include "types.h"
+#include "assimp_tools.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
@@ -78,8 +79,10 @@ int main(int argc, char **argv)
                 std::cout << "\tMesh[" << i << "]: " << mesh->mName.C_Str()
                     << " (" << mesh->mNumVertices << " vertices)" << std::endl;
             }
+            log_assimp_scene_graph(*s);
         } else {
             std::cout << "Assimp error: No meshes loaded" << std::endl;
+            return 1;
         }
     }
 
