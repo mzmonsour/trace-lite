@@ -61,7 +61,7 @@ static std::shared_ptr<BVNode> build_bvh_topdown(bvn_iter begin, bvn_iter end)
     aabb box;
     box.min = VEC3_MAXIMUM;
     box.max = VEC3_MINIMUM;
-    for (auto& it = begin; it != end; ++it) {
+    for (auto it = begin; it != end; ++it) {
         auto& bv = (*it)->bounding_volume();
         for (int c = 0; c < 3; ++c) {
             if (bv.min[c] < box.min[c]) {
