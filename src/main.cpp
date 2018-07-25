@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <glm/vec3.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <boost/program_options.hpp>
@@ -21,9 +22,8 @@ int main(int argc, char **argv)
     namespace po = boost::program_options;
 
     std::string outfile, dumpfile;
+    std::string cam_name;
     int img_width, img_height;
-    vec3 eyepos;
-    std::string eyestr;
     scalar fov;
     size_t threads;
 
@@ -37,10 +37,10 @@ int main(int argc, char **argv)
         ("width,w", po::value<int>(&img_width)->default_value(1920), "Width of the output image")
         ("height,h", po::value<int>(&img_height)->default_value(1080), "Height of the output image")
         ("no-aspect-override", "Do not override the camera aspect with the render resolution")
+        ("camera,c", po::value<std::string>(&cam_name), "Name of the camera to use for rendering")
         ("normal-coloring", "Enable normal coloring mode")
         ("interp-coloring", "Enable interpolated coloring mode")
-        ("eye", po::value<std::string>(&eyestr)->default_value("0,0,10"), "Eye position of camera")
-        ("fov,f", po::value<scalar>(&fov)->default_value(90.0f), "Vertical field of view in degrees")
+        ("fov", po::value<scalar>(&fov), "Override camera field of view. Given as vertical FOV in degrees.")
         ("msaa", "Enable Multisample Anti-Aliasing")
         ("threads,t", po::value<size_t>(&threads)->default_value(0), "Number of rendering threads (0 uses a reasonable default)")
         ;
@@ -87,13 +87,6 @@ int main(int argc, char **argv)
         }
     }
 
-    std::string eyecomp;
-    std::istringstream eyeparse(eyestr);
-    for (int i = 0; i < 3; ++i) {
-        std::getline(eyeparse, eyecomp, ',');
-        eyepos[i] = std::stof(eyecomp);
-    }
-
     std::vector<std::unique_ptr<Light>> lights;
     std::unique_ptr<Light> dlight = std::make_unique<DirectionalLight>(
                 vec3(1.0, 1.0, 1.0), 1.0,
@@ -103,14 +96,27 @@ int main(int argc, char **argv)
 
     Camera cam;
     if (scene_graph.assimp_scene()->mNumCameras > 0) {
-        cam = Camera(*scene_graph.assimp_scene(), *scene_graph.assimp_scene()->mCameras[0]);
+        auto *s = scene_graph.assimp_scene();
+        aiCamera *assimp_cam = s->mCameras[0];
+        if (argmap.count("camera")) {
+            aiString target_name(cam_name);
+            for (size_t i = 0; i < s->mNumCameras; ++i) {
+                if (s->mCameras[i]->mName == target_name) {
+                    assimp_cam = s->mCameras[i];
+                    break;
+                }
+            }
+        }
+        std::cout << "Using camera " << std::quoted(assimp_cam->mName.C_Str()) << std::endl;
+        cam = Camera(*scene_graph.assimp_scene(), *assimp_cam);
         if (!argmap.count("no-aspect-override")) {
             cam.set_aspect(((scalar)img_width) / ((scalar)img_height));
         }
+        if (argmap.count("fov")) {
+            cam.set_fov(glm::radians(fov));
+        }
     } else {
-        std::cout << "No cameras imported; falling back to eye param" << std::endl;
-        cam = Camera(glm::lookAt(eyepos, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0)),
-                glm::radians(fov), ((scalar)img_width)/((scalar)img_height));
+        std::cout << "No cameras imported; Falling back to default" << std::endl;
     }
 
     render_options ropts;
