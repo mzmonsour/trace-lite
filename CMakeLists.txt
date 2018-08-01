@@ -16,7 +16,6 @@ set(sources
     src/render.cpp
     src/scene.cpp
     src/trace.cpp
-    src/types.cpp
     src/png_helper.c
     )
 
