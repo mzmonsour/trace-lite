@@ -48,7 +48,10 @@ int main(int argc, char **argv)
     scalar fov;
     size_t threads;
 
-    po::options_description opts("Hello");
+    int result = 0;
+    bool show_help = false;
+
+    po::options_description opts("Render options");
     po::positional_options_description posopts;
     posopts.add("input", 1);
     opts.add_options()
@@ -66,11 +69,14 @@ int main(int argc, char **argv)
         ("threads,t", po::value<size_t>(&threads)->default_value(0), "Number of rendering threads (0 uses a reasonable default)")
         ;
     po::variables_map argmap;
-    po::store(po::command_line_parser(argc, argv).options(opts).positional(posopts).run(), argmap);
-    po::notify(argmap);
-
-    int result = 0;
-    bool show_help = false;
+    try {
+        po::store(po::command_line_parser(argc, argv).options(opts).positional(posopts).run(), argmap);
+        po::notify(argmap);
+    } catch (const std::exception& ex) {
+        std::cerr << ex.what() << std::endl;
+        result = 1;
+        show_help = true;
+    }
 
     if (argmap.count("help")) {
         show_help = true;
@@ -84,7 +90,7 @@ int main(int argc, char **argv)
     }
 
     if (show_help) {
-        std::cout << "Usage: " << argv[0] << " [options] input.obj" << std::endl;
+        std::cout << "Usage: " << argv[0] << " [options] input.obj" << std::endl << std::endl;
         std::cout << opts;
         return result;
     }
