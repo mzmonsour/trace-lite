@@ -140,6 +140,6 @@ trace_info Ray::intersect_mesh(const MeshInstance& obj) const
         }
     }
     info.hitpos = to_world * info.hitpos;
-    info.hitnorm = to_world * info.hitnorm;
+    info.hitnorm = glm::normalize(to_world * info.hitnorm);
     return info;
 }
