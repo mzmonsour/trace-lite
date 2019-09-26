@@ -1,4 +1,4 @@
-project(simple-trace)
+project(trace-lite)
 cmake_minimum_required(VERSION 3.10)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -52,7 +52,7 @@ include_directories(${PNG_INCLUDE_DIRS})
 set(libs ${libs} ${PNG_LIBRARIES})
 
 include_directories(src/)
-add_executable(simple-trace ${sources})
-target_link_libraries(simple-trace ${libs})
+add_executable(trace-lite ${sources})
+target_link_libraries(trace-lite ${libs})
 
-add_dependencies(simple-trace assimp)
+add_dependencies(trace-lite assimp)
